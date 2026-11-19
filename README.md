@@ -72,3 +72,5 @@ Use the [pilot verification checklist](docs/pilot.md) after deploying.
 ## WorkOS MCP
 
 This repository registers the official WorkOS MCP endpoint in [the project's Codex config](.codex/config.toml). Open this checkout as a trusted Codex project and approve the WorkOS OAuth connection in the WorkOS workspace that owns the staging app. The MCP uses dashboard OAuth. The staging API key used by the smoke test is a separate credential. [WorkOS MCP setup](https://workos.com/docs/mcp)
+
+In Codex Cloud, use the [WorkOS device-flow runbook](docs/workos-admin.md#connect-from-codex-cloud) if the browser's localhost callback fails or Codex cannot write its OAuth credentials.
