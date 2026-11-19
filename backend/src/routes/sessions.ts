@@ -1,6 +1,7 @@
 import { actorHeader, sessionIdSchema, sessionInputSchema } from '@exitslide/contracts'
 import { drizzle } from 'drizzle-orm/d1'
 import { Hono } from 'hono'
+import { listRatings } from '../db/ratings'
 import { createSession, getSession, listSessions, retireSession, updateSession } from '../db/sessions'
 
 export type DatabaseBindings = { DB: D1Database }
@@ -51,4 +52,17 @@ sessionRoutes.delete('/:id', async (context) => {
   const id = sessionIdSchema.safeParse(context.req.param('id'))
   const retired = id.success && await retireSession(drizzle(context.env.DB), context.get('owner'), id.data)
   return retired ? context.body(null, 204) : context.json({ message: 'Session unavailable.' }, 404)
+})
+
+sessionRoutes.get('/:id/ratings', async (context) => {
+  const id = sessionIdSchema.safeParse(context.req.param('id'))
+  const db = drizzle(context.env.DB)
+  if (!id.success || !await getSession(db, context.get('owner'), id.data)) {
+    return context.json({ message: 'Session unavailable.' }, 404)
+  }
+  const cursor = sessionIdSchema.optional().safeParse(context.req.query('cursor'))
+  if (!cursor.success) return context.json({ message: 'Invalid page cursor.' }, 422)
+
+  const page = await listRatings(db, id.data, cursor.data)
+  return page ? context.json(page) : context.json({ message: 'Page is no longer available.' }, 422)
 })

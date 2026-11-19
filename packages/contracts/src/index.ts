@@ -31,3 +31,21 @@ export const apiErrorSchema = z.strictObject({
 })
 
 export type SessionInput = z.infer<typeof sessionInputSchema>
+
+export const publicSessionSchema = sessionInputSchema
+
+export const ratingInputSchema = z.strictObject({
+  score: z.number().int().min(1).max(5),
+  submissionId: z.uuid(),
+})
+
+export const ratingPageSchema = z.strictObject({
+  items: z.array(ratingInputSchema.extend({ createdAt: z.iso.datetime() })),
+  nextCursor: z.uuid().nullable(),
+})
+
+export type RatingInput = z.infer<typeof ratingInputSchema>
+export type Session = z.infer<typeof sessionSchema>
+export type SessionPage = z.infer<typeof sessionPageSchema>
+export type PublicSession = z.infer<typeof publicSessionSchema>
+export type RatingPage = z.infer<typeof ratingPageSchema>
