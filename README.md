@@ -2,6 +2,8 @@
 
 ExitSlide lets speakers share slides and collect optional ratings after a Session. The [v1 plan](docs/plans/2026-11-19-2139-feat-exitslide-v1-plan.md) describes the pilot and later features.
 
+See [Architecture and development workflow](docs/architecture.md) for the two-Worker request flow, WorkOS integration, and testing and commit conventions.
+
 ## Local development
 
 Use Node 24.22 or newer in the Node 24 line and pnpm 11.25.0.
