@@ -13,7 +13,7 @@ flowchart LR
     Frontend -->|BACKEND service binding| Backend[Private Hono Worker]
 ```
 
-Each app has its own `cloudflare.config.ts`. Vite loads the backend as an auxiliary Worker during frontend development so one dev server can exercise both apps. Staging deploys through Cloudflare's `cf` CLI, backend first. The [README](../README.md) covers local setup, staging secrets, and deploy commands.
+Each app has its own `cloudflare.config.ts`. Vite loads the backend as an auxiliary Worker during frontend development so one dev server can exercise both apps. Staging deploys through Cloudflare's `cf` CLI, backend first. The [README](../README.md) covers local development. The [admin runbook](admin.md) covers staging secrets and deploy commands.
 
 ## Session persistence
 

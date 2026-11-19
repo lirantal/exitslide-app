@@ -27,3 +27,9 @@ Use the OAuth device flow if `codex mcp login workos` sends the browser to `127.
 6. Use the refreshed token as `Authorization: Bearer <access_token>` with an MCP Streamable HTTP client at `https://mcp.workos.com/mcp`. Complete the MCP initialization handshake and call `tools/list` to verify access. Call `whoami` and match the environment's client ID to ExitSlide's configured `WORKOS_CLIENT_ID` before changing settings. WorkOS environment names can repeat across projects.
 
 Keep the device code and tokens in memory or in a private temporary directory outside the checkout. Use directory permissions `0700` and file permissions `0600` if storing them on disk. Remove temporary credentials when finished. The device-flow credentials are separate from the staging smoke test API key. [WorkOS MCP setup](https://workos.com/docs/mcp)
+
+## Set the staging sign-out URI through MCP
+
+After matching the staging environment by client ID, use `defaultAuthkitApplication` to read the application ID, client ID, and current logout URIs. Verify the application's client ID matches `WORKOS_CLIENT_ID`. The `setAuthkitApplicationLogoutUris` operation replaces the full list, so preserve any existing entries and their IDs. Mark the staging homepage as the single default.
+
+Use `list_operations` to check the current mutation schema. Validate with `dryRun: true`, then apply and query the application again to confirm the default URI. Run the live staging smoke to verify that a single sign-out returns to ExitSlide and the dashboard requires a new sign-in. [Staging setup](admin.md#workos-staging-and-frontend-deployment) · [Pilot checklist](pilot.md#staging-checks)

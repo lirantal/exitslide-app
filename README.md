@@ -28,49 +28,6 @@ pnpm build
 
 Run `pnpm exec playwright install chromium` once, then `pnpm test:e2e` for the local browser workflow. The suite creates a temporary D1 database, applies the checked-in migrations, and uses a local AuthKit fixture with two test speakers. [Pilot verification](docs/pilot.md) covers `pnpm test:e2e:staging` and the GitHub Actions workflow.
 
-## Cloudflare staging
+## Project administration
 
-The workspace pins Cloudflare's `cf` CLI release candidate. Enable the account's `workers.dev` subdomain for the staging frontend.
-
-```sh
-pnpm exec cf auth login
-pnpm exec cf auth whoami
-```
-
-Create the staging database once with `pnpm exec cf d1 create --name exitslide-staging` and use its UUID as `EXITSLIDE_D1_ID`. For each release, apply migrations and deploy the backend before deploying the frontend.
-
-```sh
-export EXITSLIDE_D1_ID='<staging-database-uuid>'
-pnpm exec cf d1 migrations apply "$EXITSLIDE_D1_ID" --dir backend/drizzle
-pnpm --filter @exitslide/backend deploy:staging --no-provision
-```
-
-The staging frontend binds to `exitslide-backend-staging`. The backend keeps its public and preview URLs disabled.
-
-In the WorkOS staging environment, open **Applications**, select the ExitSlide application, and copy its **Client ID**. Add the following URLs in **Redirects**, using your Cloudflare account's `workers.dev` subdomain.
-
-- **Redirect URI** `https://exitslide-frontend-staging.<account-subdomain>.workers.dev/auth/callback`
-- **Initiate login URI** `https://exitslide-frontend-staging.<account-subdomain>.workers.dev/sign-in`
-- **Default Sign-out URI** `https://exitslide-frontend-staging.<account-subdomain>.workers.dev/`. Add it under **Sign-out URIs** and mark it **Default** so WorkOS can return the browser after logout.
-
-For staging, put these three values in a private `.env` file at the repository root. Keep this file out of version control and use `frontend/.dev.vars` for local development values. AuthKit uses keyless mode for this setup.
-
-```dotenv
-WORKOS_CLIENT_ID="client_..."
-WORKOS_REDIRECT_URI="https://exitslide-frontend-staging.<account-subdomain>.workers.dev/auth/callback"
-WORKOS_COOKIE_PASSWORD="replace-with-output-of-openssl-rand-base64-32"
-```
-
-Run `openssl rand -base64 32` to generate the cookie password. Keep it stable across staging deployments to preserve existing sign-ins. If the root `.env` contains only these three variables, pass it to `cf` as shown below. If it contains other settings, pass a separate private dotenv or JSON file with just the three WorkOS values.
-
-```sh
-pnpm --filter @exitslide/frontend deploy:staging --no-provision --secrets-file "$PWD/.env"
-```
-
-Use the [pilot verification checklist](docs/pilot.md) after deploying.
-
-## WorkOS MCP
-
-This repository registers the official WorkOS MCP endpoint in [the project's Codex config](.codex/config.toml). Open this checkout as a trusted Codex project and approve the WorkOS OAuth connection in the WorkOS workspace that owns the staging app. The MCP uses dashboard OAuth. The staging API key used by the smoke test is a separate credential. [WorkOS MCP setup](https://workos.com/docs/mcp)
-
-In Codex Cloud, use the [WorkOS device-flow runbook](docs/workos-admin.md#connect-from-codex-cloud) if the browser's localhost callback fails or Codex cannot write its OAuth credentials.
+The [admin runbook](docs/admin.md) covers Cloudflare account access and staging deployment, WorkOS settings and credentials, and GitHub Actions environment secrets. The [pilot checklist](docs/pilot.md) covers release verification and rollback.

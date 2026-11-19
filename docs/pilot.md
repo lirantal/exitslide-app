@@ -8,11 +8,11 @@ GitHub Actions runs these same checks on pull requests and pushes to `main`. Thi
 
 ## Staging checks
 
-Deploy using the [staging instructions](../README.md#cloudflare-staging). Check that the public frontend returns `200` for `/healthz` and reports the private backend, that the backend has no public or preview route, and that frontend log and trace retention are disabled.
+Deploy using the [staging instructions](admin.md#cloudflare-staging). Check that the public frontend returns `200` for `/healthz` and reports the private backend, that the backend has no public or preview route, and that frontend log and trace retention are disabled.
 
 Run `pnpm test:e2e:staging` after deploying. The suite uses real hosted sign-in, provisions two verified WorkOS staging test speakers, and opens an independent signed-out mobile browser. It retires the temporary Session and removes the test speakers. The suite reads `EXITSLIDE_WORKOS_STAGING_API_KEY` from the environment or the ignored root `.env` and requires a staging key. It uses the ExitSlide staging hostname by default. Set `EXITSLIDE_STAGING_URL` if you move staging to another Cloudflare account subdomain.
 
-In GitHub, create the **staging** environment under **Settings → Environments** and add `EXITSLIDE_WORKOS_STAGING_API_KEY` as an environment secret. Set `EXITSLIDE_STAGING_URL` as an environment variable if needed. Run **Staging smoke** from the Actions tab on the default branch. It also runs on a successful GitHub deployment status for the `staging` environment, if the deployment integration publishes that event. The workflow tests the live site and leaves deployment to the configured Cloudflare integration. It needs no Cloudflare token or app cookie password.
+To run the same check in GitHub Actions, follow the [GitHub staging smoke setup](admin.md#github-actions-staging-smoke).
 
 The live smoke covers the following user journeys.
 
@@ -24,7 +24,7 @@ The live smoke covers the following user journeys.
 
 ### Latest staging verification
 
-`pnpm test:e2e:staging` passed against the live staging deployment after the ExitSlide homepage was set as the default WorkOS **Sign-out URI**. The test verified hosted sign-in, Session publishing and editing, private feedback, public slide access with optional anonymous ratings, and Session retirement. One click on **Sign out** returned to the ExitSlide homepage. Opening `/dashboard` again required sign-in. See the [staging setup](../README.md#cloudflare-staging).
+`pnpm test:e2e:staging` passed against the live staging deployment after the ExitSlide homepage was set as the default WorkOS **Sign-out URI**. The test verified hosted sign-in, Session publishing and editing, private feedback, public slide access with optional anonymous ratings, and Session retirement. One click on **Sign out** returned to the ExitSlide homepage. Opening `/dashboard` again required sign-in. See the [staging setup](admin.md#cloudflare-staging).
 
 ## Restore a prior Worker version
 
