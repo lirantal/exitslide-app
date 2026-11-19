@@ -24,9 +24,7 @@ The live smoke covers the following user journeys.
 
 ### Latest staging verification
 
-Both temporary WorkOS speakers completed the hosted callback. The owner published a Session, the other speaker could open the deck and was denied the private Session, and the owner saw the anonymous rating. Editing preserved the public URL and rating. Retirement removed the test Session, returned `404` for its public link, and rejected a rating from an already-open page. The temporary WorkOS accounts were removed after verification.
-
-The first sign-out click reached WorkOS logout. The return to ExitSlide is pending the staging application's default **Sign-out URI**. A missing default can surface as `app-homepage-url-not-found` on WorkOS. See the [staging setup](../README.md#cloudflare-staging).
+`pnpm test:e2e:staging` passed against the live staging deployment after the ExitSlide homepage was set as the default WorkOS **Sign-out URI**. The test verified hosted sign-in, Session publishing and editing, private feedback, public slide access with optional anonymous ratings, and Session retirement. One click on **Sign out** returned to the ExitSlide homepage. Opening `/dashboard` again required sign-in. See the [staging setup](../README.md#cloudflare-staging).
 
 ## Restore a prior Worker version
 
