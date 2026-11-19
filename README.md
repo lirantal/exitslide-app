@@ -51,7 +51,7 @@ In the WorkOS staging environment, open **Applications**, select the ExitSlide a
 
 - **Redirect URI** `https://exitslide-frontend-staging.<account-subdomain>.workers.dev/auth/callback`
 - **Initiate login URI** `https://exitslide-frontend-staging.<account-subdomain>.workers.dev/sign-in`
-- **Sign-out redirect** `https://exitslide-frontend-staging.<account-subdomain>.workers.dev/`
+- **Default Sign-out URI** `https://exitslide-frontend-staging.<account-subdomain>.workers.dev/`. Add it under **Sign-out URIs** and mark it **Default** so WorkOS can return the browser after logout.
 
 For staging, put these three values in a private `.env` file at the repository root. Keep this file out of version control and use `frontend/.dev.vars` for local development values. AuthKit uses keyless mode for this setup.
 

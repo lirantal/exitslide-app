@@ -18,7 +18,9 @@ Use two real WorkOS staging accounts and one signed-out browser context for the 
 
 ### Latest staging verification
 
-The service binding, private backend URL, signed-out dashboard guard, and WorkOS handoff passed. A staged mobile browser opened a disposable Session and saved one anonymous rating. Retirement returned `404` and removed the test rating. The two-account dashboard and hosted sign-out checks still need real WorkOS sessions. Playwright covers the equivalent app workflow locally with fixture identities.
+Both temporary WorkOS speakers completed the hosted callback. The owner published a Session, the other speaker could open the deck and was denied the private Session, and the owner saw the anonymous rating. Editing preserved the public URL and rating. Retirement removed the test Session, returned `404` for its public link, and rejected a rating from an already-open page. The temporary WorkOS accounts were removed after verification.
+
+The first sign-out click reached WorkOS logout. The return to ExitSlide is pending the staging application's default **Sign-out URI**. A missing default can surface as `app-homepage-url-not-found` on WorkOS. See the [staging setup](../README.md#cloudflare-staging).
 
 ## Restore a prior Worker version
 
