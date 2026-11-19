@@ -65,4 +65,6 @@ gh secret list --env staging --repo lirantal/exitslide-app
 
 If the GitHub integration reports `Resource not accessible by integration`, use `gh auth login --hostname github.com --web --scopes repo` with a repository administrator. In Codex Cloud, use a private temporary `GH_CONFIG_DIR` and unset any injected `GH_TOKEN` or `GITHUB_TOKEN` for login and subsequent admin commands so the device login takes effect. Remove the temporary config when finished.
 
+Check `gh auth status` after device approval. During setup, GitHub reported **Token scopes: none** even after the CLI requested `repo`. The API requires repository administration write access to create the environment. If the CLI still gets HTTP 403, use the repository's **Settings → Environments** page to create the environment and add the key.
+
 Once [Staging smoke](../.github/workflows/staging-smoke.yml) is on the default branch, dispatch it from **Actions → Staging smoke → Run workflow**. It also runs on a successful GitHub deployment status for the `staging` environment if the Cloudflare integration publishes that event. The job tests the live staging URL. Cloudflare handles deployment, so the smoke job needs only the WorkOS staging API key. Use the [pilot checklist](pilot.md) for verification and rollback.
