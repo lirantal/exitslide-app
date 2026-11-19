@@ -26,7 +26,7 @@ pnpm test
 pnpm build
 ```
 
-Run `pnpm exec playwright install chromium` once, then `pnpm test:e2e` for the local browser workflow. The suite creates a temporary D1 database, applies the checked-in migrations, and uses a local AuthKit fixture with two test speakers. [Pilot verification](docs/pilot.md) covers the staging checks with real WorkOS accounts.
+Run `pnpm exec playwright install chromium` once, then `pnpm test:e2e` for the local browser workflow. The suite creates a temporary D1 database, applies the checked-in migrations, and uses a local AuthKit fixture with two test speakers. [Pilot verification](docs/pilot.md) covers `pnpm test:e2e:staging` and the GitHub Actions workflow.
 
 ## Cloudflare staging
 
@@ -68,3 +68,7 @@ pnpm --filter @exitslide/frontend deploy:staging --no-provision --secrets-file "
 ```
 
 Use the [pilot verification checklist](docs/pilot.md) after deploying.
+
+## WorkOS MCP
+
+This repository registers the official WorkOS MCP endpoint in [the project's Codex config](.codex/config.toml). Open this checkout as a trusted Codex project and approve the WorkOS OAuth connection in the WorkOS workspace that owns the staging app. The MCP uses dashboard OAuth. The staging API key used by the smoke test is a separate credential. [WorkOS MCP setup](https://workos.com/docs/mcp)
