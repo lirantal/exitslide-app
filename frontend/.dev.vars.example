@@ -1,0 +1,3 @@
+WORKOS_CLIENT_ID="client_..."
+WORKOS_REDIRECT_URI="http://localhost:3000/auth/callback"
+WORKOS_COOKIE_PASSWORD="replace-with-at-least-32-random-characters"

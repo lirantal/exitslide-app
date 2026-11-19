@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: var(--color-slate-900);
+  --color-primary-foreground: var(--color-white);
+  --color-border: var(--color-slate-300);
+  --color-background: var(--color-white);
+  --color-accent: var(--color-slate-100);
+  --color-ring: var(--color-slate-900);
+}
+
+body {
+  @apply bg-slate-50 font-sans text-slate-950 antialiased;
+}
+
+input:not([type="radio"]) {
+  @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-base text-slate-950 focus-visible:outline-2 focus-visible:outline-slate-900;
+}

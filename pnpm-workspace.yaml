@@ -1,0 +1,19 @@
+packages:
+  - frontend
+  - backend
+  - packages/*
+allowBuilds:
+  esbuild: set this to true or false
+  esbuild@0.18.20 || 0.25.12 || 0.28.2: true
+  workerd@1.20261117.1 || 1.20261118.1: true
+minimumReleaseAgeExclude:
+  - '@cloudflare/vite-plugin@2.0.0-rc.2'
+  - '@tanstack/react-start-rsc@0.1.68'
+  - '@tanstack/react-start@1.169.7'
+  - '@tanstack/start-plugin-core@1.172.0'
+  - miniflare@5.20261118.0-beta
+  - '@cloudflare/build-output-utils@1.0.0-rc.2'
+  - '@cloudflare/config@1.0.0-rc.2'
+  - '@cloudflare/runtime-types@0.1.31'
+  - cf@1.0.0-rc.2
+  - '@cloudflare/workers-types@5.20261119.1'
