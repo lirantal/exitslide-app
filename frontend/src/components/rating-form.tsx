@@ -1,6 +1,6 @@
 import type { RatingInput } from '@exitslide/contracts'
 import { useServerFn } from '@tanstack/react-start'
-import { useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { submitRating } from '../server/public-sessions'
 import { Button } from './ui/button'
 
@@ -12,14 +12,17 @@ type RatingState =
 
 export function RatingForm({ sessionId }: { sessionId: string }) {
   const send = useServerFn(submitRating)
+  const [ready, setReady] = useState(false)
   const [selected, setSelected] = useState<number>()
   const [state, setState] = useState<RatingState>({ kind: 'ready' })
   const attempt = useRef<RatingInput | undefined>(undefined)
   const busy = useRef(false)
 
+  useEffect(() => setReady(true), [])
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!selected || busy.current || state.kind === 'saved' || state.kind === 'unavailable') return
+    if (!ready || !selected || busy.current || state.kind === 'saved' || state.kind === 'unavailable') return
     attempt.current ??= { score: selected, submissionId: crypto.randomUUID() }
     busy.current = true
     setState({ kind: 'sending' })
@@ -39,8 +42,8 @@ export function RatingForm({ sessionId }: { sessionId: string }) {
 
   const finished = state.kind === 'saved' || state.kind === 'unavailable'
   return (
-    <form onSubmit={submit} className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 sm:p-8">
-      <fieldset disabled={state.kind !== 'ready'}>
+    <form method="post" onSubmit={submit} className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 sm:p-8">
+      <fieldset disabled={!ready || state.kind !== 'ready'}>
         <legend className="mb-3 text-xl font-semibold">Rate this Session <span className="text-sm font-normal text-slate-600">(optional)</span></legend>
         <div className="flex flex-wrap gap-1">
           {[1, 2, 3, 4, 5].map(score => (

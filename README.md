@@ -10,6 +10,8 @@ Use Node 24.22 or newer in the Node 24 line and pnpm 11.25.0.
 
 ```sh
 pnpm install --frozen-lockfile
+pnpm exec cf d1 migrations apply 00000000-0000-4000-8000-000000000001 \
+  --local --persist-to frontend/.cloudflare/state --dir backend/drizzle
 pnpm dev
 ```
 
@@ -24,6 +26,8 @@ pnpm test
 pnpm build
 ```
 
+Run `pnpm exec playwright install chromium` once, then `pnpm test:e2e` for the local browser workflow. The suite creates a temporary D1 database, applies the checked-in migrations, and uses a local AuthKit fixture with two test speakers. [Pilot verification](docs/pilot.md) covers the staging checks with real WorkOS accounts.
+
 ## Cloudflare staging
 
 The workspace pins Cloudflare's `cf` CLI release candidate. Enable the account's `workers.dev` subdomain for the staging frontend.
@@ -31,10 +35,17 @@ The workspace pins Cloudflare's `cf` CLI release candidate. Enable the account's
 ```sh
 pnpm exec cf auth login
 pnpm exec cf auth whoami
-pnpm --filter @exitslide/backend deploy:staging
 ```
 
-The staging frontend binds to `exitslide-backend-staging`. The backend has its public and preview URLs disabled.
+Create the staging database once with `pnpm exec cf d1 create --name exitslide-staging` and use its UUID as `EXITSLIDE_D1_ID`. For each release, apply migrations and deploy the backend before deploying the frontend.
+
+```sh
+export EXITSLIDE_D1_ID='<staging-database-uuid>'
+pnpm exec cf d1 migrations apply "$EXITSLIDE_D1_ID" --dir backend/drizzle
+pnpm --filter @exitslide/backend deploy:staging --no-provision
+```
+
+The staging frontend binds to `exitslide-backend-staging`. The backend keeps its public and preview URLs disabled.
 
 In the WorkOS staging environment, open **Applications**, select the ExitSlide application, and copy its **Client ID**. Add the following URLs in **Redirects**, using your Cloudflare account's `workers.dev` subdomain.
 
@@ -53,7 +64,7 @@ WORKOS_COOKIE_PASSWORD="replace-with-output-of-openssl-rand-base64-32"
 Run `openssl rand -base64 32` to generate the cookie password. Keep it stable across staging deployments to preserve existing sign-ins. If the root `.env` contains only these three variables, pass it to `cf` as shown below. If it contains other settings, pass a separate private dotenv or JSON file with just the three WorkOS values.
 
 ```sh
-pnpm --filter @exitslide/frontend deploy:staging --secrets-file "$PWD/.env"
+pnpm --filter @exitslide/frontend deploy:staging --no-provision --secrets-file "$PWD/.env"
 ```
 
-Check `/healthz` on the frontend and confirm the backend has no public route in Cloudflare. Then create an account or sign in via WorkOS, confirm the callback lands on `/dashboard`, sign out, and verify that reopening `/dashboard` initiates sign-in. Confirm frontend log and trace retention is disabled in the deployed configuration. AuthKit can include provider errors in its console output.
+Use the [pilot verification checklist](docs/pilot.md) after deploying.

@@ -11,6 +11,9 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     cloudflare({
       viteEnvironment: { name: 'ssr' },
+      persistState: process.env.EXITSLIDE_LOCAL_STATE
+        ? { path: process.env.EXITSLIDE_LOCAL_STATE }
+        : undefined,
       auxiliaryWorkers: [{
         config: {
           ...backendWorker(mode),

@@ -33,6 +33,6 @@ TanStack Start's CSRF middleware protects server functions. Keep speaker identit
 
 ## Development workflow
 
-Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` from the repo root. Vitest runs the backend route tests and the sign-out regression tests. The staging check exercises an actual WorkOS account and verifies that a single sign-out submission returns to the homepage and a subsequent visit to `/dashboard` requires sign-in.
+Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`, and `pnpm build` from the repo root. Vitest covers the D1-backed APIs and focused frontend regressions. Playwright runs both local Workers against a temporary D1 database and fixture speaker identities. See [pilot verification](pilot.md) for staging checks and rollback.
 
 Keep code, tests, and relevant documentation together in small commits after each verified step. The [v1 plan](plans/2026-11-19-2139-feat-exitslide-v1-plan.md) records planned features and their acceptance checks.

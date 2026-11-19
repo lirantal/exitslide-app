@@ -1,5 +1,5 @@
 import { sessionInputSchema, type SessionInput } from '@exitslide/contracts'
-import { useId, useState, type FormEvent } from 'react'
+import { useEffect, useId, useState, type FormEvent } from 'react'
 import { Button } from './ui/button'
 
 export function SessionForm({
@@ -12,13 +12,16 @@ export function SessionForm({
   onSave(input: SessionInput): Promise<string | undefined>
 }) {
   const fieldId = useId()
+  const [ready, setReady] = useState(false)
   const [pending, setPending] = useState(false)
   const [message, setMessage] = useState('')
   const [saved, setSaved] = useState(false)
 
+  useEffect(() => setReady(true), [])
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (pending) return
+    if (!ready || pending) return
     const fields = new FormData(event.currentTarget)
     const input = sessionInputSchema.safeParse({
       title: fields.get('title'),
@@ -44,7 +47,7 @@ export function SessionForm({
   }
 
   return (
-    <form onSubmit={submit} className="grid gap-4">
+    <form method="post" onSubmit={submit} className="grid gap-4">
       <label htmlFor={fieldId + '-title'} className="grid gap-1.5 text-sm font-medium">
         Session title
         <input id={fieldId + '-title'} name="title" required maxLength={160} defaultValue={initial.title} />
@@ -54,7 +57,7 @@ export function SessionForm({
         <input id={fieldId + '-url'} name="slideUrl" type="url" required maxLength={2048}
           placeholder="https://…" defaultValue={initial.slideUrl} />
       </label>
-      <div><Button type="submit" disabled={pending}>{pending ? 'Saving…' : label}</Button></div>
+      <div><Button type="submit" disabled={!ready || pending}>{pending ? 'Saving…' : label}</Button></div>
       {message && <p role="alert" className="text-sm text-red-700">{message}</p>}
       {saved && <p role="status" className="text-sm text-slate-600">Changes saved.</p>}
     </form>
