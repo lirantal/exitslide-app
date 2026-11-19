@@ -2,6 +2,7 @@ import { actorHeader, apiErrorSchema } from '@exitslide/contracts'
 
 export interface WorkerContext {
   backend: { fetch(request: Request): Promise<Response> }
+  ratingLimiter: { limit(options: { key: string }): Promise<{ success: boolean }> }
 }
 
 type BackendOptions = {

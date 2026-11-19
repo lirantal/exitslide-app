@@ -20,6 +20,10 @@ export default defineConfig(({ mode }) => {
         WORKOS_CLIENT_ID: bindings.secret(),
         WORKOS_REDIRECT_URI: bindings.secret(),
         WORKOS_COOKIE_PASSWORD: bindings.secret(),
+        RATING_RATE_LIMIT: bindings.rateLimit({
+          namespace: staging ? '584231905' : '584231906',
+          simple: { limit: 300, period: 60 },
+        }),
         BACKEND: bindings.worker({
           worker: staging ? 'exitslide-backend-staging' : 'exitslide-backend',
         }),

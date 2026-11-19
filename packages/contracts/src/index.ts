@@ -49,3 +49,5 @@ export type Session = z.infer<typeof sessionSchema>
 export type SessionPage = z.infer<typeof sessionPageSchema>
 export type PublicSession = z.infer<typeof publicSessionSchema>
 export type RatingPage = z.infer<typeof ratingPageSchema>
+
+export const ratingSavedSchema = z.strictObject({ status: z.literal('saved') })

@@ -1,8 +1,10 @@
 import { backendHealthSchema } from '@exitslide/contracts'
+import type { WorkerContext } from './server/backend'
 import handler from '@tanstack/react-start/server-entry'
 
 interface Env {
-  BACKEND: { fetch(request: Request): Promise<Response> }
+  BACKEND: WorkerContext['backend']
+  RATING_RATE_LIMIT: WorkerContext['ratingLimiter']
   WORKOS_CLIENT_ID?: string
   WORKOS_REDIRECT_URI?: string
   WORKOS_COOKIE_PASSWORD?: string
@@ -33,7 +35,7 @@ export default {
       })
     }
 
-    const response = await handler.fetch(request, { context: { backend: env.BACKEND } })
+    const response = await handler.fetch(request, { context: { backend: env.BACKEND, ratingLimiter: env.RATING_RATE_LIMIT } })
     const headers = new Headers(response.headers)
     headers.set('Cache-Control', 'no-store')
 

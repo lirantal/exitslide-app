@@ -21,7 +21,7 @@ The private Session API requires the verified speaker ID in the internal actor h
 
 ### Rating retries
 
-The public Session response contains only the title and slide URL. Ratings are private to the Session owner. Each attempt carries a submission UUID. A D1 batch inserts against an active Session and reads the winning score. Reusing the same UUID and score succeeds without a second row. Reusing the UUID with a different score returns a conflict.
+The public Session response contains only the title and slide URL. Ratings are private to the Session owner. Each attempt carries a submission UUID. A D1 batch inserts against an active Session and reads the winning score. Reusing the same UUID and score succeeds without a second row. Reusing the UUID with a different score returns a conflict. The attendee form holds the selected score and UUID while retrying. The frontend rate-limits by Session and transient connecting IP before forwarding the rating and omits both the IP and speaker identity from the internal request.
 
 ## WorkOS AuthKit
 
