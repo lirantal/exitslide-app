@@ -1,4 +1,5 @@
-import { defineConfig } from 'cf/config'
+import { env } from 'node:process'
+import { bindings, defineConfig } from 'cf/config'
 
 export function backendWorker(mode: string | undefined) {
   return {
@@ -7,6 +8,11 @@ export function backendWorker(mode: string | undefined) {
     compatibilityDate: '2026-11-19',
     workersDev: false,
     previewUrls: false,
+    env: {
+      DB: bindings.d1(mode === 'staging'
+        ? { name: 'exitslide-staging', id: env.EXITSLIDE_D1_ID }
+        : { name: 'exitslide-local', id: '00000000-0000-4000-8000-000000000001' }),
+    },
   }
 }
 

@@ -9,10 +9,15 @@
   },
   "dependencies": {
     "@exitslide/contracts": "workspace:*",
+    "drizzle-orm": "0.45.4",
     "hono": "4.13.19"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "2.0.0-rc.2",
+    "@cloudflare/workers-types": "5.20261119.1",
+    "@types/node": "24.19.2",
+    "drizzle-kit": "0.31.11",
+    "miniflare": "5.20261118.0-beta",
     "typescript": "6.0.3",
     "vite": "8.3.8"
   }

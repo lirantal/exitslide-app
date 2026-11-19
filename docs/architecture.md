@@ -3,7 +3,7 @@
 ## Workspace and request flow
 
 - `frontend/` is the public TanStack Start Worker. It renders pages, owns the WorkOS integration, and calls the backend through the `BACKEND` service binding.
-- `backend/` is the private Hono Worker. Its Cloudflare config disables public and preview URLs. The current backend exposes `/healthz` through the binding. Session persistence and ratings are defined in the v1 plan.
+- `backend/` is the private Hono Worker. Its Cloudflare config disables public and preview URLs. The backend exposes health and private Session operations through the binding. Drizzle maintains the D1 schema and checked-in migrations in `backend/drizzle/`.
 - `packages/contracts/` holds request and response schemas used by both Workers. The current shared schema validates the backend health response.
 
 ```mermaid
@@ -14,6 +14,10 @@ flowchart LR
 ```
 
 Each app has its own `cloudflare.config.ts`. Vite loads the backend as an auxiliary Worker during frontend development so one dev server can exercise both apps. Staging deploys through Cloudflare's `cf` CLI, backend first. The [README](../README.md) covers local setup, staging secrets, and deploy commands.
+
+## Session persistence
+
+The private Session API requires the verified speaker ID in the internal actor header and scopes every database query to that owner. The database records the public UUID in a separate reservation table. Creation reserves the UUID and inserts the active Session in one batch. Deletion removes the active Session and cascades to its ratings while keeping the UUID reserved.
 
 ## WorkOS AuthKit
 
