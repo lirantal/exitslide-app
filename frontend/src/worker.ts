@@ -33,7 +33,7 @@ export default {
       })
     }
 
-    const response = await handler.fetch(request)
+    const response = await handler.fetch(request, { context: { backend: env.BACKEND } })
     const headers = new Headers(response.headers)
     headers.set('Cache-Control', 'no-store')
 

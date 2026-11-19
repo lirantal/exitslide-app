@@ -25,7 +25,7 @@ The public Session response contains only the title and slide URL. Ratings are p
 
 ## WorkOS AuthKit
 
-The frontend uses the WorkOS TanStack Start SDK in keyless mode. AuthKit starts the hosted flow from `/sign-in` or `/sign-up`, validates the callback at `/auth/callback` using PKCE, and stores the session in an HTTP-only cookie. The dashboard guard checks the authenticated user on the server and sends a Boolean result to the client.
+The frontend uses the WorkOS TanStack Start SDK in keyless mode. AuthKit starts the hosted flow from `/sign-in` or `/sign-up`, validates the callback at `/auth/callback` using PKCE, and stores the session in an HTTP-only cookie. The dashboard guard checks the authenticated user on the server and sends a Boolean result to the client. Each Session server function independently resolves the WorkOS user and sets the actor header when building its service-binding request. The backend receives no browser cookies or provider tokens.
 
 The dashboard submits sign-out as a document `POST` to `/sign-out`. The route checks the request origin before calling AuthKit, preserves the cookie-clearing headers, and returns a `303` so the browser follows the WorkOS logout URL with `GET`. An expired or already-ended session returns to the homepage.
 

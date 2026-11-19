@@ -20,7 +20,7 @@ function Root() {
         <HeadContent />
       </head>
       <body>
-        <main className="mx-auto grid min-h-svh max-w-md content-center gap-6 px-6 py-12">
+        <main className="mx-auto grid min-h-svh max-w-2xl content-start gap-6 px-6 py-12">
           <Outlet />
         </main>
         <Scripts />
