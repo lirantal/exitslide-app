@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: var(--color-slate-900);
+  --color-primary-foreground: var(--color-white);
+  --color-border: var(--color-slate-300);
+  --color-background: var(--color-white);
+  --color-accent: var(--color-slate-100);
+  --color-ring: var(--color-slate-900);
+}
+
+body {
+  @apply bg-slate-50 font-sans text-slate-950 antialiased;
+}

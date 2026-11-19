@@ -1,0 +1,19 @@
+{
+  "name": "@exitslide/backend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "deploy:staging": "vite build --mode staging && cf deploy --prebuilt",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@exitslide/contracts": "workspace:*",
+    "hono": "4.13.19"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "2.0.0-rc.2",
+    "typescript": "6.0.3",
+    "vite": "8.3.8"
+  }
+}
