@@ -24,6 +24,8 @@ The live smoke covers the following user journeys.
 
 ### Latest staging verification
 
+On 21 November 2026, GitHub Actions successfully ran `pnpm test:e2e:staging` on `main` at merge commit `6e10a3f`. The runner used the `staging` environment secret to provision and remove the two WorkOS test speakers and exercise the live Session flow through sign-out. A separate request to `/healthz` returned HTTP 200 and reported the private backend. [Staging smoke run](https://github.com/lirantal/exitslide-app/actions/runs/44904227187)
+
 `pnpm test:e2e:staging` passed against the live staging deployment after the ExitSlide homepage was set as the default WorkOS **Sign-out URI**. The test verified hosted sign-in, Session publishing and editing, private feedback, public slide access with optional anonymous ratings, and Session retirement. One click on **Sign out** returned to the ExitSlide homepage. Opening `/dashboard` again required sign-in. See the [staging setup](admin.md#cloudflare-staging).
 
 ## Restore a prior Worker version
