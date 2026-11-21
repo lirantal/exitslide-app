@@ -13,7 +13,7 @@ flowchart LR
     Frontend -->|BACKEND service binding| Backend[Private Hono Worker]
 ```
 
-Each app has its own `cloudflare.config.ts`. Vite loads the backend as an auxiliary Worker during frontend development so one dev server can exercise both apps. Production deploys through Cloudflare's `cf` CLI, backend first. The [README](../README.md) covers local development. The [admin runbook](admin.md) covers production secrets and deploy commands.
+Each app has its own `cloudflare.config.ts`. Vite loads the backend as an auxiliary Worker during frontend development so one dev server can exercise both apps. On pushes to `main`, GitHub Actions uses Cloudflare's `cf` CLI to apply D1 migrations and deploy the backend, then the frontend. Cloudflare Workers Builds publishes fixture-only frontend previews for matching branch pushes. The [README](../README.md) covers local development. The [admin runbook](admin.md) covers production deployment and previews.
 
 ## Session persistence
 
