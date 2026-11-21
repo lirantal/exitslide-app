@@ -22,6 +22,14 @@ The live smoke covers the following user journeys.
 4. Change the deck URL as the first speaker. Open the original public link and verify the new destination. Delete the Session and verify that the link is unavailable and that an already-open attendee page cannot accept a rating.
 5. Click **Sign out** once, verify the homepage appears, and reopen `/dashboard` to confirm that WorkOS sign-in is required again.
 
+### Production cutover verification
+
+On 21 November 2026, the ExitSlide pilot moved to `exitslide-frontend` and the private `exitslide-backend`. The release applied the D1 migration to `exitslide` and copied all seven retired Session link IDs from the source database. The source had no active Sessions or ratings before or after the switch. The production `/healthz` endpoint returned HTTP 200, and Cloudflare reported that the backend had public and preview URLs disabled.
+
+The old frontend hostname now redirects Session links to production, preserving the path and query. A previously retired link still returned 404 after the redirect. The old backend and D1 database are retained for rollback. Cloudflare reported no Workers Builds configuration for the previous Workers. Releases use `cf` and GitHub Actions verifies them.
+
+Production uses the existing WorkOS client and speaker identities in the environment now named **Pilot AuthKit**. Only the production callback and sign-out URLs are registered. GitHub Actions passed Live smoke on `main` at `1d36f1b` with the repository secret [before the hostname switch](https://github.com/lirantal/exitslide-app/actions/runs/44906638874) and [after the hostname switch and WorkOS cleanup](https://github.com/lirantal/exitslide-app/actions/runs/44906910098).
+
 ### Pre-cutover baseline
 
 On 21 November 2026, GitHub Actions successfully ran `pnpm test:e2e:staging` on `main` at merge commit `6e10a3f`. The runner used the `staging` environment secret to provision and remove the two WorkOS test speakers and exercise the live Session flow through sign-out. A separate request to `/healthz` returned HTTP 200 and reported the private backend. [Staging smoke run](https://github.com/lirantal/exitslide-app/actions/runs/44904227187)
