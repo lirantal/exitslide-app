@@ -14,7 +14,7 @@ Use the existing production database UUID as `EXITSLIDE_D1_ID`. For a fresh inst
 ```sh
 export EXITSLIDE_D1_ID='<production-database-uuid>'
 pnpm exec cf d1 migrations apply "$EXITSLIDE_D1_ID" --dir backend/drizzle
-pnpm --filter @exitslide/backend deploy --no-provision
+pnpm --filter @exitslide/backend run deploy --no-provision
 ```
 
 The frontend binds to `exitslide-backend`. The backend binds the production D1 database as `DB` and keeps its public and preview URLs disabled. The frontend disables invocation logs and traces to keep OAuth callback data out of retained logs.
@@ -38,7 +38,7 @@ WORKOS_COOKIE_PASSWORD="replace-with-output-of-openssl-rand-base64-32"
 Run `openssl rand -base64 32` to generate the cookie password for a new origin. Keep it stable across subsequent deployments to preserve sign-ins. The frontend secret file should contain only the three values above.
 
 ```sh
-pnpm --filter @exitslide/frontend deploy --no-provision --secrets-file '<path-to-frontend-secrets-file>'
+pnpm --filter @exitslide/frontend run deploy --no-provision --secrets-file '<path-to-frontend-secrets-file>'
 ```
 
 If WorkOS logout lands on `app-homepage-url-not-found`, verify that the production homepage is **Default** under **Sign-out URIs**. See the [WorkOS MCP runbook](workos-admin.md#connect-from-codex-cloud) for device authorization if the localhost callback fails.
