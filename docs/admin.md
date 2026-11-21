@@ -4,6 +4,8 @@
 
 A push to `main` runs Verify on that commit. Once it passes, **Deploy production** builds both Workers, checks the Cloudflare configuration, and applies D1 migrations before deploying the private backend and public frontend. The same run checks `/healthz` and runs Live smoke after deploying. Pull requests run Verify. The frontend's Cloudflare SCM integration is configured for branch previews. Its production deploy command is a no-op, so GitHub Actions controls production release order.
 
+To start a production release manually, open [Verify in GitHub Actions](https://github.com/lirantal/exitslide-app/actions/workflows/ci.yml), click **Run workflow**, select `main`, and confirm **Run workflow**. This requires write access to the repository. The manual run uses the same checks, deploy order, and concurrency group as pushes to `main`.
+
 In **Settings → Secrets and variables → Actions**, add these repository settings before enabling the workflow on `main`.
 
 | Name | Setting | Value |

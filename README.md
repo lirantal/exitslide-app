@@ -30,4 +30,6 @@ Run `pnpm exec playwright install chromium` once, then `pnpm test:e2e` for the l
 
 ## Project administration
 
+**[Deploy production](https://github.com/lirantal/exitslide-app/actions/workflows/ci.yml)** · Click **Run workflow**, select `main`, and confirm **Run workflow**.
+
 The [admin runbook](docs/admin.md) covers production deployment, credentials, and [fixture-backed frontend PR previews](docs/admin.md#frontend-pr-previews). The [pilot checklist](docs/pilot.md) covers release verification and rollback.
