@@ -36,8 +36,8 @@ jobs:
       run:
         shell: bash
     env:
-      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-      EXITSLIDE_D1_ID: ${{ vars.EXITSLIDE_D1_ID }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || vars.CLOUDFLARE_ACCOUNT_ID }}
+      EXITSLIDE_D1_ID: ${{ secrets.EXITSLIDE_D1_ID || vars.EXITSLIDE_D1_ID }}
     outputs:
       deployed: ${{ steps.frontend.outputs.deployed }}
     steps:
@@ -58,7 +58,7 @@ jobs:
           EXITSLIDE_WORKOS_SMOKE_API_KEY: ${{ secrets.EXITSLIDE_WORKOS_SMOKE_API_KEY }}
           EXITSLIDE_LIVE_URL: ${{ vars.EXITSLIDE_LIVE_URL }}
         run: |
-          : "${CLOUDFLARE_ACCOUNT_ID:?Set the CLOUDFLARE_ACCOUNT_ID repository variable}"
+          : "${CLOUDFLARE_ACCOUNT_ID:?Set CLOUDFLARE_ACCOUNT_ID as a repository secret or variable}"
           : "${CLOUDFLARE_API_TOKEN:?Set the CLOUDFLARE_API_TOKEN repository secret}"
           : "${EXITSLIDE_WORKOS_SMOKE_API_KEY:?Set the EXITSLIDE_WORKOS_SMOKE_API_KEY repository secret}"
           if [[ "$EXITSLIDE_WORKOS_SMOKE_API_KEY" != sk_test_?* ]]; then

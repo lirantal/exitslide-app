@@ -13,6 +13,6 @@ A failed step stops the release. After addressing a failure, rerun the failed jo
 
 ## Setup and verification
 
-Configure a Cloudflare deployment token as a repository Actions secret and set the production account and D1 UUID as repository variables. Reuse the existing WorkOS smoke secret. Keep GitHub Actions as the production deploy trigger and leave Cloudflare Workers Builds disconnected for both Workers.
+Configure a Cloudflare deployment token as a repository Actions secret and set the production account and D1 UUID as repository secrets or variables. Reuse the existing WorkOS smoke secret. Keep GitHub Actions as the production deploy trigger and leave Cloudflare Workers Builds disconnected for both Workers.
 
 Before merging the workflow, lint the Actions YAML, run the local Verify checks, and dry-run both release deploy commands. Confirm GitHub Verify passes on the PR. After configuring the repository credentials and merging, watch the first production run through Live smoke. Preview URLs remain a separate decision.
