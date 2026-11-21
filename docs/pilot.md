@@ -4,15 +4,17 @@
 
 Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and `pnpm test:e2e`. Worker tests apply the Drizzle migrations to real local D1. The Playwright test runs both Workers with a local AuthKit fixture, two speaker identities, and an anonymous mobile attendee. It checks edit and delete behavior, private feedback, an interrupted rating response, and the sign-out redirect.
 
-GitHub Actions runs these same checks on pull requests and pushes to `main`. This workflow needs no Cloudflare or WorkOS credentials.
+The GitHub Actions Verify job runs these same checks on pull requests and pushes to `main`. Verify needs no Cloudflare or WorkOS credentials. Successful pushes to `main` continue into the [production release workflow](admin.md#github-actions-production-releases).
 
 ## Live checks
 
-Deploy using the [production instructions](admin.md#cloudflare-production). Check that the public frontend returns `200` for `/healthz` and reports the private backend, that the backend has no public or preview route, and that frontend log and trace retention are disabled.
+Check that the public frontend returns `200` for `/healthz` and reports the private backend, that the backend has no public or preview route, and that frontend log and trace retention are disabled. The [manual deployment instructions](admin.md#manual-cloudflare-deployment) cover recovery and first-time setup.
 
 Run `pnpm test:e2e:live` after deploying. The suite uses real hosted sign-in, provisions two verified WorkOS test speakers, and opens an independent signed-out mobile browser. It retires the temporary Session and removes the test speakers. The suite reads `EXITSLIDE_WORKOS_SMOKE_API_KEY` from the environment or the ignored root `.env` and requires a WorkOS test key for the AuthKit tenant that serves ExitSlide. It uses the ExitSlide production hostname by default. Set `EXITSLIDE_LIVE_URL` if you move production to another Cloudflare account subdomain.
 
 To run the same check in GitHub Actions, follow the [GitHub live smoke setup](admin.md#github-actions-live-smoke).
+
+For a failed release, check the last successful step. If the commit still heads `main`, fix the cause and rerun failed jobs. A smoke-only rerun repeats verification. A deploy rerun applies pending migrations and redeploys both Workers. If the commit has been superseded, use the new `main` run. Use compatible migrations so the existing Workers can continue to serve requests while deployment is underway.
 
 The live smoke covers the following user journeys.
 

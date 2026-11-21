@@ -27,6 +27,9 @@ function isSignIn(origin: string, url: URL) {
 test('live WorkOS speakers can publish, view private feedback, retire, and sign out', async ({ browser, baseURL }) => {
   if (!baseURL) throw new Error('Specify the ExitSlide live origin.')
   const origin = baseURL
+  const health = await fetch(origin + '/healthz', { redirect: 'error', signal: AbortSignal.timeout(10_000) })
+  expect(health.status).toBe(200)
+  expect(await health.json()).toMatchObject({ service: 'exitslide-backend', status: 'ok' })
   const workos = smokeWorkOS()
   const speakers: TestSpeaker[] = []
   const title = 'ExitSlide smoke ' + randomUUID()
