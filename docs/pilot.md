@@ -26,7 +26,7 @@ The live smoke covers the following user journeys.
 
 On 21 November 2026, the ExitSlide pilot moved to `exitslide-frontend` and the private `exitslide-backend`. The release applied the D1 migration to `exitslide` and copied all seven retired Session link IDs from the source database. The source had no active Sessions or ratings before or after the switch. The production `/healthz` endpoint returned HTTP 200, and Cloudflare reported that the backend had public and preview URLs disabled.
 
-The old frontend hostname now redirects Session links to production, preserving the path and query. A previously retired link still returned 404 after the redirect. The old backend and D1 database are retained for rollback. Cloudflare reported no Workers Builds configuration for the previous Workers. Releases use `cf` and GitHub Actions verifies them.
+During the cutover, the old frontend hostname redirected Session links to production. No one had shared links from that hostname, so its Cloudflare public endpoint was disabled and the redirect Worker source was removed. The old backend and D1 database are retained for rollback. Cloudflare reported no Workers Builds configuration for the previous Workers. Releases use `cf` and GitHub Actions verifies them.
 
 Production uses the existing WorkOS client and speaker identities in the environment now named **Pilot AuthKit**. Only the production callback and sign-out URLs are registered. GitHub Actions passed Live smoke on `main` at `1d36f1b` with the repository secret [before the hostname switch](https://github.com/lirantal/exitslide-app/actions/runs/44906638874) and [after the hostname switch and WorkOS cleanup](https://github.com/lirantal/exitslide-app/actions/runs/44906910098).
 

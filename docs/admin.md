@@ -43,15 +43,6 @@ pnpm --filter @exitslide/frontend run deploy --no-provision --secrets-file '<pat
 
 If WorkOS logout lands on `app-homepage-url-not-found`, verify that the production homepage is **Default** under **Sign-out URIs**. See the [WorkOS MCP runbook](workos-admin.md#connect-from-codex-cloud) for device authorization if the localhost callback fails.
 
-## Previously shared Session links
-
-The old hostname serves the compatibility Worker in `frontend/legacy-links`. It redirects old Session links to production, keeps their paths and queries, and sends old bookmarks to the production homepage. Use the commands below when changing the redirect Worker. If switching hostnames again, update its destination before deploying it.
-
-```sh
-pnpm --filter @exitslide/frontend exec vite build legacy-links --config legacy-links/vite.config.ts
-(cd frontend/legacy-links && ../../node_modules/.bin/cf deploy --prebuilt --no-provision)
-```
-
 ## GitHub Actions live smoke
 
 Create a WorkOS test API key in the AuthKit environment serving ExitSlide. The smoke test uses an `sk_test_` key to create and remove temporary test speakers. For a local run, set `EXITSLIDE_WORKOS_SMOKE_API_KEY` in the process environment or the ignored root `.env`.
