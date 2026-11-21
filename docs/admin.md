@@ -72,7 +72,7 @@ The production workflow calls this check automatically. After a manual deploy or
 
 Use previews for changes reviewers can see in the frontend, including PRs that also change the backend. For a backend behavior change, update the fixture if a reviewer needs to see its effect. Verify continues to run the real backend and temporary local D1 in CI.
 
-Cloudflare Workers Builds publishes a Preview when a push to a branch other than `main` matches the preview watch paths. Cloudflare posts the link on the PR and updates the same branch URL on subsequent matching pushes. Delete the branch after merging or closing its PR so Cloudflare can remove its preview. Closing the PR while keeping the branch leaves the preview available. [Cloudflare GitHub integration](https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/github-integration/) · [Preview lifecycle](https://developers.cloudflare.com/workers/ci-cd/builds/api-reference/#manage-previews)
+Cloudflare Workers Builds publishes a Preview when a push to a branch other than `main` matches the preview watch paths. Cloudflare posts the link on the PR and updates the same branch URL on subsequent matching pushes. With **Auto-delete** enabled for the Preview, deleting the branch removes its preview. Closing the PR while keeping the branch leaves the preview available. [Cloudflare GitHub integration](https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/github-integration/) · [Preview lifecycle](https://developers.cloudflare.com/workers/ci-cd/builds/api-reference/#manage-previews)
 
 The URL is public and carries synthetic data. Use the preview controls to switch speakers, try the attendee flow, or reset samples. New Sessions and ratings are stored in the current browser, so a new Session link works in another tab of that browser. Seeded Sessions are available to every reviewer.
 
@@ -88,9 +88,9 @@ Connect `lirantal/exitslide-app` in **Workers & Pages → exitslide-pr-preview �
 | Preview build command | `pnpm install --frozen-lockfile && CLOUDFLARE_PREVIEW_BUILD=true pnpm --filter @exitslide/frontend exec vite build --mode pr-preview` |
 | Preview command | `pnpm --filter @exitslide/frontend exec cf previews deploy --prebuilt --mode pr-preview` |
 | Preview build variables | `SKIP_DEPENDENCY_INSTALL=true`, `NODE_VERSION=24.22.1`, `PNPM_VERSION=11.25.0` |
-| Preview watch paths | `frontend/**`, `packages/contracts/**`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `.node-version`, `tsconfig.base.json` |
+| Preview watch paths | `frontend/*`, `packages/contracts/*`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `.node-version`, `tsconfig.base.json` |
 
-If the dashboard offers a production build toggle, disable it. The production deploy command is a no-op so a build of `main` cannot publish this Worker. GitHub Actions continues to deploy both production Workers. [Workers Builds settings](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) · [Build image variables](https://developers.cloudflare.com/workers/ci-cd/builds/build-image/)
+If the dashboard offers a production build toggle, disable it. The production deploy command is a no-op so a build of `main` cannot publish this Worker. GitHub Actions continues to deploy both production Workers. [Workers Builds settings](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) · [Build watch paths](https://developers.cloudflare.com/workers/ci-cd/builds/build-watch-paths/) · [Build image variables](https://developers.cloudflare.com/workers/ci-cd/builds/build-image/)
 
 To exercise the preview locally, run the fixture build and browser test.
 
