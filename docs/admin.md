@@ -1,6 +1,23 @@
 # ExitSlide administration
 
-## Cloudflare production
+## GitHub Actions production releases
+
+A push to `main` runs Verify on that commit. Once it passes, **Deploy production** builds both Workers, checks the Cloudflare configuration, and applies D1 migrations before deploying the private backend and public frontend. The same run checks `/healthz` and runs Live smoke after deploying. Pull requests run Verify. Keep Workers Builds disconnected for both Workers so this workflow controls production release order.
+
+In **Settings → Secrets and variables → Actions**, add these repository settings before enabling the workflow on `main`.
+
+| Name | Setting | Value |
+| --- | --- | --- |
+| `CLOUDFLARE_ACCOUNT_ID` | Secret or variable | Cloudflare account ID for `brain-labs` |
+| `EXITSLIDE_D1_ID` | Secret or variable | UUID of the production `exitslide` D1 database |
+| `CLOUDFLARE_API_TOKEN` | Secret | Deployment token scoped to `brain-labs` with Workers Scripts Edit and D1 Edit permissions |
+| `EXITSLIDE_WORKOS_SMOKE_API_KEY` | Secret | Existing test API key for the AuthKit environment serving ExitSlide |
+
+If an ID is set in both places, the workflow uses the secret. To create the deployment token, select **Create Token → Create Custom Token** under [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens). Give it **Account → Workers Scripts → Edit** and **Account → D1 → Edit**, include only the `brain-labs` account, and save the value in the GitHub Actions secret. [Cloudflare token instructions](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)
+
+The workflow inherits the three existing WorkOS runtime secrets on `exitslide-frontend` and checks that they exist before applying migrations. Keep runtime secret changes in Cloudflare. Check the first push to `main` through **Verify → Deploy production → Verify live deployment**. Use the [pilot checklist](pilot.md) for reruns and rollback.
+
+## Manual Cloudflare deployment
 
 ExitSlide has one live deployment. The workspace pins Cloudflare's `cf` CLI. From the repo root, start the CLI login and complete device approval. Check that `whoami` shows the account that owns the ExitSlide resources. Production uses the account's `workers.dev` subdomain for the frontend.
 
@@ -49,4 +66,4 @@ Create a WorkOS test API key in the AuthKit environment serving ExitSlide. The s
 
 In GitHub, go to **Settings → Secrets and variables → Actions** and add `EXITSLIDE_WORKOS_SMOKE_API_KEY` as a repository secret. If the public origin changes, set the optional repository Actions variable `EXITSLIDE_LIVE_URL` to the production HTTPS origin.
 
-After deploying with `cf`, open **Actions → Live smoke → Run workflow**, select `main`, and monitor the run. Use the [pilot checklist](pilot.md) for verification and rollback.
+The production workflow calls this check automatically. After a manual deploy or rollback, open **Actions → Live smoke → Run workflow**, select `main`, and monitor the run. Use the [pilot checklist](pilot.md) for verification and rollback.
