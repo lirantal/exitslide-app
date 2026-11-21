@@ -29,7 +29,7 @@ jobs:
       - name: Verify the fixture preview locally
         if: github.event_name == 'pull_request'
         run: |
-          CLOUDFLARE_PREVIEW_BUILD=true pnpm --filter @exitslide/frontend exec vite build --mode pr-preview
+          pnpm build:pr-preview
           pnpm test:e2e:preview
   deploy:
     name: Deploy production

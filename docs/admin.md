@@ -76,27 +76,28 @@ Cloudflare Workers Builds publishes a Preview when a push to a branch other than
 
 The URL is public and carries synthetic data. Use the preview controls to switch speakers, try the attendee flow, or reset samples. New Sessions and ratings are stored in the current browser, so a new Session link works in another tab of that browser. Seeded Sessions are available to every reviewer.
 
-The Cloudflare GitHub App is connected to `lirantal/exitslide-app` under **Workers & Pages → exitslide-pr-preview → Settings → Builds**. The Worker's production hostname is disabled. Leave Preview runtime variables, secrets, and bindings empty. [Cloudflare Preview URLs](https://developers.cloudflare.com/workers/previews/custom-domains/)
+Connect `lirantal/exitslide-app` under **Workers & Pages → exitslide-frontend → Settings → Builds**. Keep Preview runtime variables, secrets, and bindings empty. Enable `workers.dev` Preview routing under **Domains & Routes** to test before the first production release with this configuration. Subsequent releases enable that routing through `previewUrls`. Cloudflare uses this toggle for both native Preview URLs and Version URLs, which serve the bindings of the selected Worker version. [Cloudflare Preview URLs](https://developers.cloudflare.com/workers/previews/custom-domains/) · [Version URLs](https://developers.cloudflare.com/workers/versions-and-deployments/version-urls/)
 
-Preview Builds are paused pending a deployment credential decision. Cloudflare attached a user token with account-wide write permissions. Workers Builds currently supports user tokens, and Cloudflare rejected the **Individual Workers → Editor** role on a user token. A separate Cloudflare account for previews would keep an account-scoped build token away from production. Using the existing account requires explicitly accepting that the build token can edit other Workers. [Workers Builds token support](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/#api-token) · [Cloudflare Worker permissions](https://developers.cloudflare.com/workers/authorization/workers/)
+Use a Workers Builds user token scoped to the `brain-labs` account with **Workers Scripts → Edit**. This permission covers other Workers in the same account. The preview build itself uses only fixtures. [Workers Builds token support](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/#api-token)
 
 | Workers Builds setting | Value |
 | --- | --- |
 | Root directory | Repository root (`/`) |
 | Production branch | `main` |
 | Production build command | Leave blank |
-| Production deploy command | `echo 'ExitSlide fixture previews have no production deployment'` |
-| Enable Preview Builds | On after the build token scope is settled |
-| Preview build command | `pnpm install --frozen-lockfile && CLOUDFLARE_PREVIEW_BUILD=true pnpm --filter @exitslide/frontend exec vite build --mode pr-preview` |
-| Preview command | `pnpm --filter @exitslide/frontend exec cf previews deploy --prebuilt --mode pr-preview` |
-| Preview build variables | `SKIP_DEPENDENCY_INSTALL=true`, `NODE_VERSION=24.22.1`, `PNPM_VERSION=11.25.0` |
+| Production deploy command | `echo 'Production deploys through GitHub Actions'` |
+| Production watch path excludes | `*` |
+| Enable Preview Builds | On |
+| Preview build command | `pnpm install --frozen-lockfile && pnpm build:pr-preview` |
+| Preview command | `pnpm deploy:pr-preview` |
+| Preview build variables | `SKIP_DEPENDENCY_INSTALL=true`, `NODE_VERSION=24.22.1` |
 | Preview watch paths | `frontend/*`, `packages/contracts/*`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `.node-version`, `tsconfig.base.json` |
 
-If the dashboard offers a production build toggle, disable it. The production deploy command is a no-op so a build of `main` cannot publish this Worker. GitHub Actions continues to deploy both production Workers. [Workers Builds settings](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) · [Build watch paths](https://developers.cloudflare.com/workers/ci-cd/builds/build-watch-paths/) · [Build image variables](https://developers.cloudflare.com/workers/ci-cd/builds/build-image/)
+Workers Builds reads the pinned pnpm version from the root `package.json`. The explicit preview commands select the frontend workspace and fixture mode. The production deploy command is a no-op, and GitHub Actions continues to deploy both production Workers. [Workers Builds settings](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) · [Build watch paths](https://developers.cloudflare.com/workers/ci-cd/builds/build-watch-paths/) · [Build image variables](https://developers.cloudflare.com/workers/ci-cd/builds/build-image/)
 
 To exercise the preview locally, run the fixture build and browser test.
 
 ```sh
-CLOUDFLARE_PREVIEW_BUILD=true pnpm --filter @exitslide/frontend exec vite build --mode pr-preview
+pnpm build:pr-preview
 pnpm test:e2e:preview
 ```
