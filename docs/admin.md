@@ -76,7 +76,9 @@ Cloudflare Workers Builds publishes a Preview when a push to a branch other than
 
 The URL is public and carries synthetic data. Use the preview controls to switch speakers, try the attendee flow, or reset samples. New Sessions and ratings are stored in the current browser, so a new Session link works in another tab of that browser. Seeded Sessions are available to every reviewer.
 
-Connect `lirantal/exitslide-app` in **Workers & Pages → exitslide-pr-preview → Settings → Builds**. Scope the Cloudflare GitHub App installation to this repository and use a build token with **Individual Workers → Editor** for `exitslide-pr-preview`. The Worker's production hostname stays disabled. Leave Preview runtime variables, secrets, and bindings empty. [Cloudflare Worker permissions](https://developers.cloudflare.com/workers/authorization/workers/) · [Cloudflare Preview URLs](https://developers.cloudflare.com/workers/previews/custom-domains/)
+The Cloudflare GitHub App is connected to `lirantal/exitslide-app` under **Workers & Pages → exitslide-pr-preview → Settings → Builds**. The Worker's production hostname is disabled. Leave Preview runtime variables, secrets, and bindings empty. [Cloudflare Preview URLs](https://developers.cloudflare.com/workers/previews/custom-domains/)
+
+Preview Builds are paused pending a deployment credential decision. Cloudflare attached a user token with account-wide write permissions. Workers Builds currently supports user tokens, and Cloudflare rejected the **Individual Workers → Editor** role on a user token. A separate Cloudflare account for previews would keep an account-scoped build token away from production. Using the existing account requires explicitly accepting that the build token can edit other Workers. [Workers Builds token support](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/#api-token) · [Cloudflare Worker permissions](https://developers.cloudflare.com/workers/authorization/workers/)
 
 | Workers Builds setting | Value |
 | --- | --- |
@@ -84,7 +86,7 @@ Connect `lirantal/exitslide-app` in **Workers & Pages → exitslide-pr-preview �
 | Production branch | `main` |
 | Production build command | Leave blank |
 | Production deploy command | `echo 'ExitSlide fixture previews have no production deployment'` |
-| Enable Preview Builds | On |
+| Enable Preview Builds | On after the build token scope is settled |
 | Preview build command | `pnpm install --frozen-lockfile && CLOUDFLARE_PREVIEW_BUILD=true pnpm --filter @exitslide/frontend exec vite build --mode pr-preview` |
 | Preview command | `pnpm --filter @exitslide/frontend exec cf previews deploy --prebuilt --mode pr-preview` |
 | Preview build variables | `SKIP_DEPENDENCY_INSTALL=true`, `NODE_VERSION=24.22.1`, `PNPM_VERSION=11.25.0` |
