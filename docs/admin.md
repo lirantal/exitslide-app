@@ -45,7 +45,7 @@ If WorkOS logout lands on `app-homepage-url-not-found`, verify that the producti
 
 ## Previously shared Session links
 
-The old hostname can serve the compatibility Worker in `frontend/legacy-links`. It redirects old Session links to production, keeps their paths and queries, and sends old bookmarks to the production homepage. Deploy it after the production hostname is ready. If switching hostnames again, update its destination before deploying it.
+The old hostname serves the compatibility Worker in `frontend/legacy-links`. It redirects old Session links to production, keeps their paths and queries, and sends old bookmarks to the production homepage. Use the commands below when changing the redirect Worker. If switching hostnames again, update its destination before deploying it.
 
 ```sh
 pnpm --filter @exitslide/frontend exec vite build legacy-links --config legacy-links/vite.config.ts

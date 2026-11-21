@@ -1,5 +1,7 @@
 # ExitSlide production cutover
 
+Completed on 21 November 2026. See the [verified outcome](../pilot.md#production-cutover-verification) and use the [production deployment runbook](../admin.md) for subsequent releases. The checklist below records the one-time cutover.
+
 ExitSlide will have one deployed environment for the pilot. Run development and fixture-based tests locally. Keep GitHub Actions for verification and live smoke testing, and deploy manually with the pinned `cf` CLI. The [first GitHub staging smoke](https://github.com/lirantal/exitslide-app/actions/runs/44904227187) establishes the baseline for the cutover.
 
 ## 1. Inventory the pilot resources

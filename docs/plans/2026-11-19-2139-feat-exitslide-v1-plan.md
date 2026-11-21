@@ -10,6 +10,8 @@ execution: code
 
 # ExitSlide v1 - Plan
 
+This is the original MVP implementation plan. Its staging instructions describe the setup used before the [completed production cutover](2026-11-21-exitslide-production-cutover.md). For current releases, use the [production deployment runbook](../admin.md) and [live verification checklist](../pilot.md).
+
 ## Goal Capsule
 
 **Objective.** Give conference speakers one reusable link per event session so attendees can get the slides and leave quick feedback afterward.
