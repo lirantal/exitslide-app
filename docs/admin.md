@@ -49,7 +49,7 @@ The old hostname can serve the compatibility Worker in `frontend/legacy-links`. 
 
 ```sh
 pnpm --filter @exitslide/frontend exec vite build legacy-links --config legacy-links/vite.config.ts
-pnpm --dir frontend/legacy-links exec cf deploy --prebuilt --no-provision
+(cd frontend/legacy-links && ../../node_modules/.bin/cf deploy --prebuilt --no-provision)
 ```
 
 ## GitHub Actions live smoke
