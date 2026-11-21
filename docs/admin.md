@@ -72,17 +72,29 @@ The production workflow calls this check automatically. After a manual deploy or
 
 Use previews for changes reviewers can see in the frontend, including PRs that also change the backend. For a backend behavior change, update the fixture if a reviewer needs to see its effect. Verify continues to run the real backend and temporary local D1 in CI.
 
-From **Actions → PR preview → Run workflow**, select `main` and enter an open PR number from this repository. The Actions summary links to the hosted preview and identifies the commit. Rerun after pushing to update the same URL. Closing the PR removes its preview. The URL is public and carries synthetic data. Use the preview controls to switch speakers, try the attendee flow, or reset samples. New Sessions and ratings are stored in the current browser, so a new Session link works in another tab of that browser. Seeded Sessions are available to every reviewer.
+Cloudflare Workers Builds publishes a Preview when a push to a branch other than `main` matches the preview watch paths. Cloudflare posts the link on the PR and updates the same branch URL on subsequent matching pushes. Delete the branch after merging or closing its PR so Cloudflare can remove its preview. Closing the PR while keeping the branch leaves the preview available. [Cloudflare GitHub integration](https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/github-integration/) · [Preview lifecycle](https://developers.cloudflare.com/workers/ci-cd/builds/api-reference/#manage-previews)
 
-The dedicated Cloudflare Worker `exitslide-pr-preview` hosts branch previews. Its default hostname stays disabled. The preview build has no D1, WorkOS, or service bindings. Bootstrap the Worker once with the pinned CLI, then enable Preview under its Worker URL settings if needed.
+The URL is public and carries synthetic data. Use the preview controls to switch speakers, try the attendee flow, or reset samples. New Sessions and ratings are stored in the current browser, so a new Session link works in another tab of that browser. Seeded Sessions are available to every reviewer.
+
+Connect `lirantal/exitslide-app` in **Workers & Pages → exitslide-pr-preview → Settings → Builds**. Scope the Cloudflare GitHub App installation to this repository and use a build token with **Individual Workers → Editor** for `exitslide-pr-preview`. The Worker's production hostname stays disabled. Leave Preview runtime variables, secrets, and bindings empty. [Cloudflare Worker permissions](https://developers.cloudflare.com/workers/authorization/workers/) · [Cloudflare Preview URLs](https://developers.cloudflare.com/workers/previews/custom-domains/)
+
+| Workers Builds setting | Value |
+| --- | --- |
+| Root directory | Repository root (`/`) |
+| Production branch | `main` |
+| Production build command | Leave blank |
+| Production deploy command | `echo 'ExitSlide fixture previews have no production deployment'` |
+| Enable Preview Builds | On |
+| Preview build command | `pnpm install --frozen-lockfile && CLOUDFLARE_PREVIEW_BUILD=true pnpm --filter @exitslide/frontend exec vite build --mode pr-preview` |
+| Preview command | `pnpm --filter @exitslide/frontend exec cf previews deploy --prebuilt --mode pr-preview` |
+| Preview build variables | `SKIP_DEPENDENCY_INSTALL=true`, `NODE_VERSION=24.22.1`, `PNPM_VERSION=11.25.0` |
+| Preview watch paths | `frontend/**`, `packages/contracts/**`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `.node-version`, `tsconfig.base.json` |
+
+If the dashboard offers a production build toggle, disable it. The production deploy command is a no-op so a build of `main` cannot publish this Worker. GitHub Actions continues to deploy both production Workers. [Workers Builds settings](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) · [Build image variables](https://developers.cloudflare.com/workers/ci-cd/builds/build-image/)
+
+To exercise the preview locally, run the fixture build and browser test.
 
 ```sh
-pnpm exec cf auth login
 CLOUDFLARE_PREVIEW_BUILD=true pnpm --filter @exitslide/frontend exec vite build --mode pr-preview
-pnpm --filter @exitslide/frontend exec cf previews deploy --prebuilt --mode pr-preview --preview-name setup
-pnpm exec cf previews delete setup --worker exitslide-pr-preview --force
+pnpm test:e2e:preview
 ```
-
-Create a separate Cloudflare API token with **Individual Workers → Editor** for `exitslide-pr-preview` and save it as the repository secret `CLOUDFLARE_PREVIEW_API_TOKEN`. The publisher uses that token and the existing `CLOUDFLARE_ACCOUNT_ID`. The build runs on the PR commit without deployment credentials. The publisher uses tooling from `main`. [Cloudflare Worker permissions](https://developers.cloudflare.com/workers/authorization/workers/) · [Cloudflare Preview URLs](https://developers.cloudflare.com/workers/previews/custom-domains/)
-
-To exercise the preview locally, build it using the command above, then run `pnpm test:e2e:preview` or `pnpm --filter @exitslide/frontend exec vite preview --mode pr-preview`.
