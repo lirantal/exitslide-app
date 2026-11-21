@@ -2,7 +2,7 @@
 
 ## GitHub Actions production releases
 
-A push to `main` runs Verify on that commit. Once it passes, **Deploy production** builds both Workers, checks the Cloudflare configuration, and applies D1 migrations before deploying the private backend and public frontend. The same run checks `/healthz` and runs Live smoke after deploying. Pull requests run Verify. Keep Workers Builds disconnected for both Workers so this workflow controls production release order.
+A push to `main` runs Verify on that commit. Once it passes, **Deploy production** builds both Workers, checks the Cloudflare configuration, and applies D1 migrations before deploying the private backend and public frontend. The same run checks `/healthz` and runs Live smoke after deploying. Pull requests run Verify. The frontend's Cloudflare SCM integration is configured for branch previews. Its production deploy command is a no-op, so GitHub Actions controls production release order.
 
 In **Settings → Secrets and variables → Actions**, add these repository settings before enabling the workflow on `main`.
 
@@ -76,22 +76,20 @@ Cloudflare Workers Builds publishes a Preview when a push to a branch other than
 
 The URL is public and carries synthetic data. Use the preview controls to switch speakers, try the attendee flow, or reset samples. New Sessions and ratings are stored in the current browser, so a new Session link works in another tab of that browser. Seeded Sessions are available to every reviewer.
 
-Connect `lirantal/exitslide-app` under **Workers & Pages → exitslide-frontend → Settings → Builds**. Keep Preview runtime variables, secrets, and bindings empty. Enable `workers.dev` Preview routing under **Domains & Routes** to test before the first production release with this configuration. Subsequent releases enable that routing through `previewUrls`. Cloudflare uses this toggle for both native Preview URLs and Version URLs, which serve the bindings of the selected Worker version. [Cloudflare Preview URLs](https://developers.cloudflare.com/workers/previews/custom-domains/) · [Version URLs](https://developers.cloudflare.com/workers/versions-and-deployments/version-urls/)
+Authorize the Cloudflare GitHub App for `lirantal/exitslide-app` and connect it to `exitslide-frontend` with `main` as the production branch. Keep Preview runtime variables, secrets, and bindings empty. The GitHub authorization is a one-time step. The [Workers Builds settings](../ops/cloudflare/preview-builds.json) control commands, paths, and build variables. Apply them from the repo root with an authenticated `cf` profile for the `brain-labs` account.
 
-Use a Workers Builds user token scoped to the `brain-labs` account with **Workers Scripts → Edit**. This permission covers other Workers in the same account. The preview build itself uses only fixtures. [Workers Builds token support](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/#api-token)
+```sh
+bash ops/cloudflare/configure-preview-builds.sh
+```
 
-| Workers Builds setting | Value |
-| --- | --- |
-| Root directory | Repository root (`/`) |
-| Production branch | `main` |
-| Production build command | Leave blank |
-| Production deploy command | `echo 'Production deploys through GitHub Actions'` |
-| Production watch path excludes | `*` |
-| Enable Preview Builds | On |
-| Preview build command | `pnpm install --frozen-lockfile && pnpm build:pr-preview` |
-| Preview command | `pnpm deploy:pr-preview` |
-| Preview build variables | `SKIP_DEPENDENCY_INSTALL=true`, `NODE_VERSION=24.22.1` |
-| Preview watch paths | `frontend/*`, `packages/contracts/*`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `.node-version`, `tsconfig.base.json` |
+Preview builds remain paused until the build credential is approved. Workers Builds requires a user token. **Workers Scripts → Edit** covers Workers across the `brain-labs` account. After an approved token is registered with Workers Builds, set `EXITSLIDE_BUILDS_TOKEN_UUID` to the build token UUID, set `previews_enabled` to `true` in the settings file, and apply the configuration. Keep token values out of the repo. [Workers Builds token support](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/#api-token)
+
+The frontend release config enables `workers.dev` Preview routing. To apply this routing before the first release, use `cf workers triggers deploy` on the release build. This applies routing without uploading a Worker version. Cloudflare uses this toggle for both native Preview URLs and Version URLs, which serve the bindings of the selected Worker version. [Cloudflare Preview URLs](https://developers.cloudflare.com/workers/previews/custom-domains/) · [Version URLs](https://developers.cloudflare.com/workers/versions-and-deployments/version-urls/)
+
+```sh
+pnpm --filter @exitslide/frontend exec vite build --mode release
+pnpm --filter @exitslide/frontend exec cf workers triggers deploy --prebuilt
+```
 
 Workers Builds reads the pinned pnpm version from the root `package.json`. The explicit preview commands select the frontend workspace and fixture mode. The production deploy command is a no-op, and GitHub Actions continues to deploy both production Workers. [Workers Builds settings](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) · [Build watch paths](https://developers.cloudflare.com/workers/ci-cd/builds/build-watch-paths/) · [Build image variables](https://developers.cloudflare.com/workers/ci-cd/builds/build-image/)
 
