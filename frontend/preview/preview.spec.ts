@@ -25,7 +25,9 @@ test('fixture Session changes stay in the reviewer browser', async ({ page, brow
   await page.goto(shared)
   await page.getByRole('button', { name: 'Attend as guest' }).click()
   await expect(page.getByRole('heading', { name: 'Browser-only Session' })).toBeVisible()
-  await page.getByRole('radio', { name: '4 stars' }).press('Space')
+  const fourStars = page.getByRole('radio', { name: '4 stars' })
+  await expect(fourStars).toBeEnabled()
+  await fourStars.press('Space')
   await page.getByRole('button', { name: 'Submit rating' }).click()
   await expect(page.getByRole('status')).toHaveText('Thanks for your feedback.')
 
