@@ -3,6 +3,7 @@ on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 permissions:
   contents: read
 concurrency:
@@ -14,20 +15,48 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Check the documentation label against the PR diff
+        id: documentation
+        if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'documentation')
+        shell: bash
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Checkout tests GitHub's merge commit. Its first parent is the base
+          # used for this run, and its second parent must be the PR head.
+          if [[ "$(git rev-parse --verify HEAD^2)" == "$PR_HEAD_SHA" ]] &&
+             git diff --quiet --no-renames HEAD^1 HEAD -- . \
+               ':(top,exclude,glob)docs/**' ':(top,exclude,literal)README.md'; then
+            echo 'docs_only=true' >> "$GITHUB_OUTPUT"
+            echo 'Documentation-only changes. Skipping full Verify.'
+          else
+            echo 'Could not confirm a documentation-only change. Running full Verify.'
+          fi
       - uses: pnpm/action-setup@v4
+        if: steps.documentation.outputs.docs_only != 'true'
       - uses: actions/setup-node@v4
+        if: steps.documentation.outputs.docs_only != 'true'
         with:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+        if: steps.documentation.outputs.docs_only != 'true'
       - run: pnpm lint
+        if: steps.documentation.outputs.docs_only != 'true'
       - run: pnpm typecheck
+        if: steps.documentation.outputs.docs_only != 'true'
       - run: pnpm test
+        if: steps.documentation.outputs.docs_only != 'true'
       - run: pnpm build
+        if: steps.documentation.outputs.docs_only != 'true'
       - run: pnpm exec playwright install --with-deps chromium
+        if: steps.documentation.outputs.docs_only != 'true'
       - run: pnpm test:e2e
+        if: steps.documentation.outputs.docs_only != 'true'
       - name: Verify the fixture preview locally
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && steps.documentation.outputs.docs_only != 'true'
         run: |
           pnpm build:pr-preview
           pnpm test:e2e:preview
