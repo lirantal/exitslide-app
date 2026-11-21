@@ -1,0 +1,106 @@
+import { expect, test } from '@playwright/test'
+
+test('speaker shares slides, receives one retried rating, edits and retires the Session', async ({ page, browser, baseURL }) => {
+  const origin = baseURL!
+  const owner = page.context()
+  const attendee = await browser.newContext({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true })
+  const secondSpeaker = await browser.newContext()
+  await owner.addCookies([{ name: 'exitslide-test-user', value: 'user_first', url: origin }])
+  await secondSpeaker.addCookies([{ name: 'exitslide-test-user', value: 'user_second', url: origin }])
+  await attendee.route('https://example.com/**', route => route.fulfill({ body: 'Example deck' }))
+
+  try {
+    await page.goto('/dashboard')
+    await expect(page.getByText('You haven’t created a Session yet.')).toBeVisible()
+    await page.getByRole('link', { name: 'New Session' }).click()
+    await page.getByLabel('Session title').fill('Practical Session')
+    await page.getByLabel('Slide URL').fill('http://example.com/slides')
+    await page.getByRole('button', { name: 'Publish Session' }).click()
+    await expect(page.getByRole('alert')).toHaveText('Enter a title and a valid HTTPS slide URL.')
+    await expect(page.getByLabel('Session title')).toHaveValue('Practical Session')
+
+    await page.getByLabel('Slide URL').fill('https://example.com/slides')
+    await page.getByRole('button', { name: 'Publish Session' }).click()
+    await expect(page.getByRole('heading', { name: 'Practical Session' })).toBeVisible()
+    await expect(page.getByText('No feedback yet.')).toBeVisible()
+    const url = await page.getByLabel('Public Session link').inputValue()
+    expect(url).toMatch(/\/s\/[a-f0-9-]+$/)
+    const privateUrl = page.url()
+
+    const outsider = await secondSpeaker.newPage()
+    await outsider.goto(privateUrl)
+    await expect(outsider.getByRole('alert')).toHaveText('Session unavailable.')
+    await outsider.goto(url)
+    await expect(outsider.getByRole('link', { name: /Get slides/ })).toBeVisible()
+
+    const publicPage = await attendee.newPage()
+    await publicPage.goto(url)
+    await expect(publicPage.getByRole('button', { name: 'Submit rating' })).toBeDisabled()
+    const popupPromise = publicPage.waitForEvent('popup')
+    await publicPage.getByRole('link', { name: /Get slides/ }).click()
+    const popup = await popupPromise
+    await popup.waitForLoadState('domcontentloaded')
+    expect(popup.url()).toBe('https://example.com/slides')
+    await popup.close()
+    await publicPage.bringToFront()
+
+    let lost = false
+    const submissions: Array<string | null> = []
+    await publicPage.route('**/_serverFn/**', async route => {
+      if (route.request().method() !== 'POST') return route.continue()
+      submissions.push(route.request().postData())
+      if (lost) return route.continue()
+      lost = true
+      await route.fetch()
+      await route.abort('failed')
+    })
+    const fourStars = publicPage.getByRole('radio', { name: '4 stars' })
+    await expect(fourStars).toBeEnabled()
+    await fourStars.press('Space')
+    await expect(fourStars).toBeChecked()
+    await publicPage.getByRole('button', { name: 'Submit rating' }).click()
+    await expect(publicPage.getByRole('button', { name: 'Retry rating' })).toBeVisible()
+    await expect(publicPage.getByRole('radio', { name: '4 stars' })).toBeChecked()
+    await expect(publicPage.getByRole('radio', { name: '5 stars' })).toBeDisabled()
+    await publicPage.getByRole('button', { name: 'Retry rating' }).click()
+    await expect(publicPage.getByRole('status')).toHaveText('Thanks for your feedback.')
+    expect(submissions).toHaveLength(2)
+    expect(submissions[1]).toBe(submissions[0])
+
+    await page.reload()
+    await expect(page.getByText('4 out of 5')).toHaveCount(1)
+    await expect(publicPage.getByText('4 out of 5')).toHaveCount(0)
+    await page.getByText('Edit Session', { exact: true }).click()
+    await page.getByLabel('Session title').fill('Updated Session')
+    await page.getByLabel('Slide URL').fill('https://example.com/updated')
+    await page.getByRole('button', { name: 'Save changes' }).click()
+    await expect(page.getByRole('heading', { name: 'Updated Session' })).toBeVisible()
+    await expect(page.getByLabel('Public Session link')).toHaveValue(url)
+    await expect(page.getByText('4 out of 5')).toHaveCount(1)
+    await publicPage.reload()
+    await expect(publicPage.getByRole('heading', { name: 'Updated Session' })).toBeVisible()
+    await expect(publicPage.getByRole('link', { name: /Get slides/ })).toHaveAttribute('href', 'https://example.com/updated')
+
+    page.once('dialog', dialog => dialog.dismiss())
+    await page.getByRole('button', { name: 'Delete Session' }).click()
+    await expect(page.getByRole('heading', { name: 'Updated Session' })).toBeVisible()
+    page.once('dialog', dialog => dialog.accept())
+    await page.getByRole('button', { name: 'Delete Session' }).click()
+    await expect(page.getByText('You haven’t created a Session yet.')).toBeVisible()
+
+    await expect(fourStars).toBeEnabled()
+    await fourStars.press('Space')
+    await expect(fourStars).toBeChecked()
+    await publicPage.getByRole('button', { name: 'Submit rating' }).click()
+    await expect(publicPage.getByRole('alert')).toHaveText('Session unavailable.')
+    const retired = await publicPage.reload()
+    expect(retired?.status()).toBe(404)
+    await expect(publicPage.getByRole('heading', { name: 'This Session is unavailable' })).toBeVisible()
+    await page.getByRole('button', { name: 'Sign out' }).click()
+    await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toBeVisible()
+    expect((await page.request.get('/dashboard', { maxRedirects: 0 })).status()).toBe(307)
+  } finally {
+    await attendee.close()
+    await secondSpeaker.close()
+  }
+})

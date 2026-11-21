@@ -1,0 +1,35 @@
+name: Staging smoke
+on:
+  workflow_dispatch:
+  deployment_status:
+permissions:
+  contents: read
+concurrency:
+  group: exitslide-staging-smoke
+  cancel-in-progress: false
+jobs:
+  smoke:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref_name == github.event.repository.default_branch) ||
+      (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' &&
+       github.event.deployment.environment == 'staging')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: staging
+      deployment: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e:staging
+        env:
+          EXITSLIDE_STAGING_URL: ${{ vars.EXITSLIDE_STAGING_URL }}
+          EXITSLIDE_WORKOS_STAGING_API_KEY: ${{ secrets.EXITSLIDE_WORKOS_STAGING_API_KEY }}
