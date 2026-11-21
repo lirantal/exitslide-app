@@ -4,7 +4,7 @@
 
 Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and `pnpm test:e2e`. Worker tests apply the Drizzle migrations to real local D1. The Playwright test runs both Workers with a local AuthKit fixture, two speaker identities, and an anonymous mobile attendee. It checks edit and delete behavior, private feedback, an interrupted rating response, and the sign-out redirect.
 
-The GitHub Actions Verify job runs these same checks on pull requests and pushes to `main`. Verify needs no Cloudflare or WorkOS credentials. Successful pushes to `main` continue into the [production release workflow](admin.md#github-actions-production-releases).
+The GitHub Actions Verify job runs these same checks on pull requests and pushes to `main`. On pull requests it also builds and browser-tests the [fixture preview](admin.md#frontend-pr-previews). Verify needs no Cloudflare or WorkOS credentials. Successful pushes to `main` continue into the [production release workflow](admin.md#github-actions-production-releases).
 
 ## Live checks
 
@@ -12,7 +12,7 @@ Check that the public frontend returns `200` for `/healthz` and reports the priv
 
 Run `pnpm test:e2e:live` after deploying. The suite uses real hosted sign-in, provisions two verified WorkOS test speakers, and opens an independent signed-out mobile browser. It retires the temporary Session and removes the test speakers. The suite reads `EXITSLIDE_WORKOS_SMOKE_API_KEY` from the environment or the ignored root `.env` and requires a WorkOS test key for the AuthKit tenant that serves ExitSlide. It uses the ExitSlide production hostname by default. Set `EXITSLIDE_LIVE_URL` if you move production to another Cloudflare account subdomain.
 
-To run the same check in GitHub Actions, follow the [GitHub live smoke setup](admin.md#github-actions-live-smoke).
+GitHub Actions runs the same check automatically after a production deploy. After a manual deploy or rollback, use the [manual Live smoke dispatch](admin.md#github-actions-live-smoke) or run the suite locally.
 
 For a failed release, check the last successful step. If the commit still heads `main`, fix the cause and rerun failed jobs. A smoke-only rerun repeats verification. A deploy rerun applies pending migrations and redeploys both Workers. If the commit has been superseded, use the new `main` run. Use compatible migrations so the existing Workers can continue to serve requests while deployment is underway.
 
@@ -28,9 +28,11 @@ The live smoke covers the following user journeys.
 
 On 21 November 2026, the ExitSlide pilot moved to `exitslide-frontend` and the private `exitslide-backend`. The release applied the D1 migration to `exitslide` and copied all seven retired Session link IDs from the source database. The source had no active Sessions or ratings before or after the switch. The production `/healthz` endpoint returned HTTP 200, and Cloudflare reported that the backend had public and preview URLs disabled.
 
-During the cutover, the old frontend hostname redirected Session links to production. No one had shared links from that hostname, so its Cloudflare public endpoint was disabled and the redirect Worker source was removed. The old backend and D1 database are retained for rollback. Cloudflare reported no Workers Builds configuration for the previous Workers. Releases use `cf` and GitHub Actions verifies them.
+During the cutover, the old frontend hostname redirected Session links to production. No one had shared links from that hostname, so its Cloudflare public endpoint was disabled and the redirect Worker source was removed. The old backend and D1 database are retained for rollback. Cloudflare reported no Workers Builds configuration for the previous Workers.
 
 Production uses the existing WorkOS client and speaker identities in the environment now named **Pilot AuthKit**. Only the production callback and sign-out URLs are registered. GitHub Actions passed Live smoke on `main` at `1d36f1b` with the repository secret [before the hostname switch](https://github.com/lirantal/exitslide-app/actions/runs/44906638874) and [after the hostname switch and WorkOS cleanup](https://github.com/lirantal/exitslide-app/actions/runs/44906910098).
+
+The merge of PR #4 at `701ba42` verified the final release flow. GitHub Actions built both Workers, passed the D1 migration step, deployed the private backend and then the frontend, and passed live smoke. PR #4 also verified the native fixture preview on `exitslide-frontend` and its removal when the branch was deleted. [Production run](https://github.com/lirantal/exitslide-app/actions/runs/44931108119) · [Preview PR](https://github.com/lirantal/exitslide-app/pull/4)
 
 ### Pre-cutover baseline
 

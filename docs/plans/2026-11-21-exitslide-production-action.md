@@ -1,5 +1,7 @@
 # ExitSlide production deploy action
 
+This plan records the work that introduced automated production deployment. The [admin runbook](../admin.md) describes the current workflow, including the frontend's later adoption of [Cloudflare Workers Builds for PR previews](../admin.md#frontend-pr-previews).
+
 ## Trigger and order
 
 When a push reaches `main`, use the existing Verify job to test that exact commit. On success, run a serialized production release with Cloudflare’s pinned `cf` CLI. Pull requests run Verify with read-only repository permissions and zero deployment credentials.
