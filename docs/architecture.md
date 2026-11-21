@@ -13,7 +13,7 @@ flowchart LR
     Frontend -->|BACKEND service binding| Backend[Private Hono Worker]
 ```
 
-Each app has its own `cloudflare.config.ts`. Vite loads the backend as an auxiliary Worker during frontend development so one dev server can exercise both apps. Staging deploys through Cloudflare's `cf` CLI, backend first. The [README](../README.md) covers local development. The [admin runbook](admin.md) covers staging secrets and deploy commands.
+Each app has its own `cloudflare.config.ts`. Vite loads the backend as an auxiliary Worker during frontend development so one dev server can exercise both apps. Production deploys through Cloudflare's `cf` CLI, backend first. The [README](../README.md) covers local development. The [admin runbook](admin.md) covers production secrets and deploy commands.
 
 ## Session persistence
 
@@ -33,6 +33,6 @@ TanStack Start's CSRF middleware protects server functions. Keep speaker identit
 
 ## Development workflow
 
-Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`, and `pnpm build` from the repo root. Vitest covers the D1-backed APIs and focused frontend regressions. Playwright runs both local Workers against a temporary D1 database and fixture speaker identities. See [pilot verification](pilot.md) for staging checks and rollback.
+Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`, and `pnpm build` from the repo root. Vitest covers the D1-backed APIs and focused frontend regressions. Playwright runs both local Workers against a temporary D1 database and fixture speaker identities. See [pilot verification](pilot.md) for live checks and rollback.
 
 Keep code, tests, and relevant documentation together in small commits after each verified step. The [v1 plan](plans/2026-11-19-2139-feat-exitslide-v1-plan.md) records planned features and their acceptance checks.

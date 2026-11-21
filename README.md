@@ -26,8 +26,8 @@ pnpm test
 pnpm build
 ```
 
-Run `pnpm exec playwright install chromium` once, then `pnpm test:e2e` for the local browser workflow. The suite creates a temporary D1 database, applies the checked-in migrations, and uses a local AuthKit fixture with two test speakers. [Pilot verification](docs/pilot.md) covers `pnpm test:e2e:staging` and the GitHub Actions workflow.
+Run `pnpm exec playwright install chromium` once, then `pnpm test:e2e` for the local browser workflow. The suite creates a temporary D1 database, applies the checked-in migrations, and uses a local AuthKit fixture with two test speakers. [Pilot verification](docs/pilot.md) covers `pnpm test:e2e:live` and the GitHub Actions workflow.
 
 ## Project administration
 
-The [admin runbook](docs/admin.md) covers Cloudflare account access and staging deployment, WorkOS settings and credentials, and GitHub Actions environment secrets. The [pilot checklist](docs/pilot.md) covers release verification and rollback.
+The [admin runbook](docs/admin.md) covers Cloudflare account access and production deployment, WorkOS settings and credentials, and GitHub Actions repository secrets. The [pilot checklist](docs/pilot.md) covers release verification and rollback.

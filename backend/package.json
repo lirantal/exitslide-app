@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "deploy:staging": "vite build --mode staging && cf deploy --prebuilt",
+    "deploy": "vite build --mode release && cf deploy --prebuilt",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

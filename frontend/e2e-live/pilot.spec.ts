@@ -1,10 +1,10 @@
 import { randomUUID } from 'node:crypto'
 import { expect, test, type Page } from '@playwright/test'
-import { attachStagingNetwork } from './staging-network'
-import { stagingWorkOS, type TestSpeaker } from './workos'
+import { attachLiveNetwork } from './live-network'
+import { smokeWorkOS, type TestSpeaker } from './workos'
 
 async function signIn(page: Page, origin: string, speaker: TestSpeaker) {
-  await attachStagingNetwork(page, origin)
+  await attachLiveNetwork(page, origin)
   await page.goto(origin + '/sign-in')
   const hosted = new URL(page.url())
   if (hosted.protocol !== 'https:' || !hosted.hostname.endsWith('.authkit.app')) {
@@ -25,9 +25,9 @@ function isSignIn(origin: string, url: URL) {
 }
 
 test('live WorkOS speakers can publish, view private feedback, retire, and sign out', async ({ browser, baseURL }) => {
-  if (!baseURL) throw new Error('Specify the ExitSlide staging origin.')
+  if (!baseURL) throw new Error('Specify the ExitSlide live origin.')
   const origin = baseURL
-  const workos = stagingWorkOS()
+  const workos = smokeWorkOS()
   const speakers: TestSpeaker[] = []
   const title = 'ExitSlide smoke ' + randomUUID()
   const owner = await browser.newPage()
@@ -39,7 +39,7 @@ test('live WorkOS speakers can publish, view private feedback, retire, and sign 
     page.setDefaultNavigationTimeout(20_000)
   }
 
-  let step = 'provision staging speakers'
+  let step = 'provision smoke speakers'
   let sessionMayExist = false
   const failures: string[] = []
   try {
@@ -63,7 +63,7 @@ test('live WorkOS speakers can publish, view private feedback, retire, and sign 
     expect(publicPage.pathname).toMatch(/^\/s\/[0-9a-f-]+$/)
 
     step = 'open slides and submit anonymous feedback'
-    await attachStagingNetwork(attendee, origin)
+    await attachLiveNetwork(attendee, origin)
     await attendee.goto(publicUrl)
     await expect(attendee.getByRole('link', { name: /Get slides/ })).toHaveAttribute('href', 'https://example.com/slides')
     await expect(attendee.getByRole('button', { name: 'Submit rating' })).toBeDisabled()
@@ -102,7 +102,7 @@ test('live WorkOS speakers can publish, view private feedback, retire, and sign 
     await expect(attendee.getByRole('alert')).toHaveText('Session unavailable.')
     expect((await attendee.reload())?.status()).toBe(404)
 
-    step = 'sign out once and return from WorkOS to the staging homepage'
+    step = 'sign out once and return from WorkOS to the live homepage'
     const logout = owner.waitForResponse(response => {
       const url = new URL(response.url())
       return url.hostname === 'api.workos.com' && url.pathname === '/user_management/sessions/logout'
@@ -115,7 +115,7 @@ test('live WorkOS speakers can publish, view private feedback, retire, and sign 
     await owner.waitForURL(url => isSignIn(origin, url))
   } catch {
     // OAuth callback URLs and temporary credentials can appear in Playwright action errors.
-    failures.push('Staging smoke failed while trying to ' + step + '.')
+    failures.push('Live smoke failed while trying to ' + step + '.')
   } finally {
     let canRemoveOwner = true
     if (sessionMayExist) {

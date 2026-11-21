@@ -1,0 +1,26 @@
+name: Live smoke
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: exitslide-live-smoke
+  cancel-in-progress: false
+jobs:
+  smoke:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e:live
+        env:
+          EXITSLIDE_LIVE_URL: ${{ vars.EXITSLIDE_LIVE_URL }}
+          EXITSLIDE_WORKOS_SMOKE_API_KEY: ${{ secrets.EXITSLIDE_WORKOS_SMOKE_API_KEY }}

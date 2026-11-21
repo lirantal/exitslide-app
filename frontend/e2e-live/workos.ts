@@ -4,18 +4,18 @@ import { parseEnv } from 'node:util'
 
 export type TestSpeaker = { id: string; email: string; password: string }
 
-export function stagingWorkOS() {
-  let key = process.env.EXITSLIDE_WORKOS_STAGING_API_KEY
+export function smokeWorkOS() {
+  let key = process.env.EXITSLIDE_WORKOS_SMOKE_API_KEY
   if (!key) {
     try {
       key = parseEnv(readFileSync(new URL('../../.env', import.meta.url), 'utf8'))
-        .EXITSLIDE_WORKOS_STAGING_API_KEY
+        .EXITSLIDE_WORKOS_SMOKE_API_KEY
     } catch {
       // CI supplies the key as an environment variable.
     }
   }
   if (!key?.startsWith('sk_test_')) {
-    throw new Error('Set EXITSLIDE_WORKOS_STAGING_API_KEY to a WorkOS staging key.')
+    throw new Error('Set EXITSLIDE_WORKOS_SMOKE_API_KEY to a WorkOS test key for the live ExitSlide AuthKit tenant.')
   }
 
   async function request(method: 'POST' | 'DELETE', path: string, body?: object) {
@@ -36,7 +36,7 @@ export function stagingWorkOS() {
       const email = 'exitslide-qa-' + randomUUID() + '@example.net'
       const password = randomUUID() + '-Qa7!'
       const response = await request('POST', '', {
-        email, password, email_verified: true, first_name: 'ExitSlide', last_name: 'Staging QA',
+        email, password, email_verified: true, first_name: 'ExitSlide', last_name: 'Live QA',
       })
       const { id } = await response.json() as { id?: string }
       if (!id || !/^user_[A-Za-z0-9]+$/.test(id)) throw new Error('No test speaker ID returned.')
