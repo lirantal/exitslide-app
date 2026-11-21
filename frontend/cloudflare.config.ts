@@ -1,6 +1,18 @@
 import { bindings, defineConfig } from 'cf/config'
 
 export default defineConfig(({ mode }) => {
+  if (mode === 'pr-preview') {
+    return {
+      worker: {
+        name: 'exitslide-pr-preview',
+        entrypoint: 'preview/worker.ts',
+        compatibilityDate: '2026-11-19',
+        compatibilityFlags: ['nodejs_compat'],
+        workersDev: false,
+        observability: { enabled: false },
+      },
+    }
+  }
   const release = mode === 'release'
 
   return {

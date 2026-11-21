@@ -17,6 +17,7 @@
     "src",
     "cloudflare.config.ts",
     "vite.config.ts",
+    "preview",
     "e2e",
     "e2e-live"
   ]

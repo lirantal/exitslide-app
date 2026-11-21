@@ -67,3 +67,22 @@ Create a WorkOS test API key in the AuthKit environment serving ExitSlide. The s
 In GitHub, go to **Settings → Secrets and variables → Actions** and add `EXITSLIDE_WORKOS_SMOKE_API_KEY` as a repository secret. If the public origin changes, set the optional repository Actions variable `EXITSLIDE_LIVE_URL` to the production HTTPS origin.
 
 The production workflow calls this check automatically. After a manual deploy or rollback, open **Actions → Live smoke → Run workflow**, select `main`, and monitor the run. Use the [pilot checklist](pilot.md) for verification and rollback.
+
+## Frontend PR previews
+
+Use previews for changes reviewers can see in the frontend, including PRs that also change the backend. For a backend behavior change, update the fixture if a reviewer needs to see its effect. Verify continues to run the real backend and temporary local D1 in CI.
+
+From **Actions → PR preview → Run workflow**, select `main` and enter an open PR number from this repository. The Actions summary links to the hosted preview and identifies the commit. Rerun after pushing to update the same URL. Closing the PR removes its preview. The URL is public and carries synthetic data. Use the preview controls to switch speakers, try the attendee flow, or reset samples. New Sessions and ratings are stored in the current browser, so a new Session link works in another tab of that browser. Seeded Sessions are available to every reviewer.
+
+The dedicated Cloudflare Worker `exitslide-pr-preview` hosts branch previews. Its default hostname stays disabled. The preview build has no D1, WorkOS, or service bindings. Bootstrap the Worker once with the pinned CLI, then enable Preview under its Worker URL settings if needed.
+
+```sh
+pnpm exec cf auth login
+CLOUDFLARE_PREVIEW_BUILD=true pnpm --filter @exitslide/frontend exec vite build --mode pr-preview
+pnpm --filter @exitslide/frontend exec cf previews deploy --prebuilt --mode pr-preview --preview-name setup
+pnpm exec cf previews delete setup --worker exitslide-pr-preview --force
+```
+
+Create a separate Cloudflare API token with **Individual Workers → Editor** for `exitslide-pr-preview` and save it as the repository secret `CLOUDFLARE_PREVIEW_API_TOKEN`. The publisher uses that token and the existing `CLOUDFLARE_ACCOUNT_ID`. The build runs on the PR commit without deployment credentials. The publisher uses tooling from `main`. [Cloudflare Worker permissions](https://developers.cloudflare.com/workers/authorization/workers/) · [Cloudflare Preview URLs](https://developers.cloudflare.com/workers/previews/custom-domains/)
+
+To exercise the preview locally, build it using the command above, then run `pnpm test:e2e:preview` or `pnpm --filter @exitslide/frontend exec vite preview --mode pr-preview`.

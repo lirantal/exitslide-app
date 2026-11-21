@@ -6,15 +6,21 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { backendWorker } from '../backend/cloudflare.config.ts'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   server: { port: 3000, strictPort: true },
+  resolve: {
+    alias: mode === 'pr-preview' ? [{
+      find: '@workos/authkit-tanstack-react-start',
+      replacement: fileURLToPath(new URL('./e2e/auth-fixture.ts', import.meta.url)),
+    }] : [],
+  },
   plugins: [
     cloudflare({
       viteEnvironment: { name: 'ssr' },
       persistState: process.env.EXITSLIDE_LOCAL_STATE
         ? { path: process.env.EXITSLIDE_LOCAL_STATE }
         : undefined,
-      auxiliaryWorkers: [{
+      auxiliaryWorkers: mode === 'pr-preview' ? [] : [{
         config: {
           ...backendWorker(undefined),
           entrypoint: fileURLToPath(new URL('../backend/src/index.ts', import.meta.url)),
@@ -26,4 +32,4 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-})
+}))
