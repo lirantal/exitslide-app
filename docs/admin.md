@@ -70,6 +70,10 @@ In GitHub, go to **Settings → Secrets and variables → Actions** and add `EXI
 
 The production workflow calls this check automatically. After a manual deploy or rollback, open **Actions → Live smoke → Run workflow**, select `main`, and monitor the run. Use the [pilot checklist](pilot.md) for verification and rollback.
 
+## Documentation PR checks
+
+Apply the `documentation` label to a PR that changes only files under `docs/` or the root `README.md`. Verify checks the PR diff and reports success without installing dependencies or running builds and tests when the diff stays within those paths. Adding or removing a label reruns Verify. Unlabeled PRs and changes outside those paths get full Verify. Cloudflare uses its own watch paths for hosted previews. Releases from `main` follow the [production workflow](#github-actions-production-releases).
+
 ## Frontend PR previews
 
 Use previews for changes reviewers can see in the frontend, including PRs that also change the backend. For a backend behavior change, update the fixture if a reviewer needs to see its effect. Verify continues to run the real backend and temporary local D1 in CI.
