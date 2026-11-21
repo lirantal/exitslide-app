@@ -9,11 +9,14 @@
   "scripts": {
     "dev": "pnpm --filter @exitslide/frontend dev",
     "build": "pnpm -r --if-present build",
+    "build:pr-preview": "CLOUDFLARE_PREVIEW_BUILD=true pnpm --filter @exitslide/frontend exec vite build --mode pr-preview",
+    "deploy:pr-preview": "pnpm --filter @exitslide/frontend exec cf previews deploy --prebuilt --mode pr-preview",
     "lint": "eslint .",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "test:e2e:live": "playwright test --config playwright.live.config.ts"
+    "test:e2e:live": "playwright test --config playwright.live.config.ts",
+    "test:e2e:preview": "playwright test --config playwright.preview.config.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

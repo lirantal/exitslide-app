@@ -2,8 +2,8 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig, mergeConfig } from 'vite'
 import frontendConfig from '../vite.config.ts'
 
-// Only the Playwright server loads this config. Production use the real SDK.
-export default defineConfig(mergeConfig(frontendConfig, {
+// The integration suite uses fixture identities with the real local backend.
+export default defineConfig(config => mergeConfig(frontendConfig(config), {
   envDir: process.env.EXITSLIDE_E2E_ENV_DIR,
   resolve: {
     alias: {

@@ -1,6 +1,23 @@
 import { bindings, defineConfig } from 'cf/config'
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ isPreview, mode }) => {
+  const fixturePreview = mode === 'pr-preview'
+  if (fixturePreview !== Boolean(isPreview)) {
+    throw new Error('Build Worker Previews in pr-preview mode with Cloudflare Preview build output.')
+  }
+
+  if (fixturePreview) {
+    return {
+      worker: {
+        name: 'exitslide-frontend',
+        entrypoint: 'preview/worker.ts',
+        compatibilityDate: '2026-11-19',
+        compatibilityFlags: ['nodejs_compat'],
+        workersDev: false,
+        observability: { enabled: false },
+      },
+    }
+  }
   const release = mode === 'release'
 
   return {
@@ -10,7 +27,7 @@ export default defineConfig(({ mode }) => {
       compatibilityDate: '2026-11-19',
       compatibilityFlags: ['nodejs_compat'],
       workersDev: release,
-      previewUrls: false,
+      previewUrls: release,
       observability: {
         enabled: false,
         logs: { enabled: false, invocationLogs: false },

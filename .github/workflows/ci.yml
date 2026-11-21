@@ -26,6 +26,11 @@ jobs:
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
+      - name: Verify the fixture preview locally
+        if: github.event_name == 'pull_request'
+        run: |
+          pnpm build:pr-preview
+          pnpm test:e2e:preview
   deploy:
     name: Deploy production
     needs: verify
