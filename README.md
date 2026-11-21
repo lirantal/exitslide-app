@@ -30,4 +30,4 @@ Run `pnpm exec playwright install chromium` once, then `pnpm test:e2e` for the l
 
 ## Project administration
 
-The [admin runbook](docs/admin.md) covers Cloudflare account access and production deployment, WorkOS settings and credentials, and GitHub Actions repository secrets. The [pilot checklist](docs/pilot.md) covers release verification and rollback.
+The [admin runbook](docs/admin.md) covers production deployment, credentials, and [fixture-backed frontend PR previews](docs/admin.md#frontend-pr-previews). The [pilot checklist](docs/pilot.md) covers release verification and rollback.
