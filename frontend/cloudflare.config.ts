@@ -1,15 +1,15 @@
 import { bindings, defineConfig } from 'cf/config'
 
 export default defineConfig(({ mode }) => {
-  const staging = mode === 'staging'
+  const release = mode === 'release'
 
   return {
     worker: {
-      name: staging ? 'exitslide-frontend-staging' : 'exitslide-frontend',
+      name: 'exitslide-frontend',
       entrypoint: 'src/worker.ts',
       compatibilityDate: '2026-11-19',
       compatibilityFlags: ['nodejs_compat'],
-      workersDev: staging,
+      workersDev: release,
       previewUrls: false,
       observability: {
         enabled: false,
@@ -21,11 +21,11 @@ export default defineConfig(({ mode }) => {
         WORKOS_REDIRECT_URI: bindings.secret(),
         WORKOS_COOKIE_PASSWORD: bindings.secret(),
         RATING_RATE_LIMIT: bindings.rateLimit({
-          namespace: staging ? '584231905' : '584231906',
+          namespace: release ? '584231905' : '584231906',
           simple: { limit: 300, period: 60 },
         }),
         BACKEND: bindings.worker({
-          worker: staging ? 'exitslide-backend-staging' : 'exitslide-backend',
+          worker: 'exitslide-backend',
         }),
       },
     },

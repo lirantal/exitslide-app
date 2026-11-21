@@ -6,7 +6,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { backendWorker } from '../backend/cloudflare.config.ts'
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   server: { port: 3000, strictPort: true },
   plugins: [
     cloudflare({
@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
         : undefined,
       auxiliaryWorkers: [{
         config: {
-          ...backendWorker(mode),
+          ...backendWorker(undefined),
           entrypoint: fileURLToPath(new URL('../backend/src/index.ts', import.meta.url)),
         },
         devOnly: true,
@@ -26,4 +26,4 @@ export default defineConfig(({ mode }) => ({
     react(),
     tailwindcss(),
   ],
-}))
+})

@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "deploy:staging": "vite build --mode staging && cf deploy --prebuilt",
+    "deploy": "vite build --mode release && cf deploy --prebuilt",
     "typecheck": "tsr generate && tsc --noEmit"
   },
   "dependencies": {

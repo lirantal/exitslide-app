@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test'
 
 // The remote Codex browser may lack the managed proxy CA present in Node.
 // Forward through Node's verified TLS connection and preserve separate cookie headers.
-export async function attachStagingNetwork(page: Page, origin: string) {
+export async function attachLiveNetwork(page: Page, origin: string) {
   if (process.env.EXITSLIDE_SMOKE_NODE_PROXY !== '1') return
 
   const cdp = await page.context().newCDPSession(page)

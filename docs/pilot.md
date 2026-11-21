@@ -6,13 +6,13 @@ Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and `pnpm test:e2e
 
 GitHub Actions runs these same checks on pull requests and pushes to `main`. This workflow needs no Cloudflare or WorkOS credentials.
 
-## Staging checks
+## Live checks
 
-Deploy using the [staging instructions](admin.md#cloudflare-staging). Check that the public frontend returns `200` for `/healthz` and reports the private backend, that the backend has no public or preview route, and that frontend log and trace retention are disabled.
+Deploy using the [production instructions](admin.md#cloudflare-production). Check that the public frontend returns `200` for `/healthz` and reports the private backend, that the backend has no public or preview route, and that frontend log and trace retention are disabled.
 
-Run `pnpm test:e2e:staging` after deploying. The suite uses real hosted sign-in, provisions two verified WorkOS staging test speakers, and opens an independent signed-out mobile browser. It retires the temporary Session and removes the test speakers. The suite reads `EXITSLIDE_WORKOS_STAGING_API_KEY` from the environment or the ignored root `.env` and requires a staging key. It uses the ExitSlide staging hostname by default. Set `EXITSLIDE_STAGING_URL` if you move staging to another Cloudflare account subdomain.
+Run `pnpm test:e2e:live` after deploying. The suite uses real hosted sign-in, provisions two verified WorkOS test speakers, and opens an independent signed-out mobile browser. It retires the temporary Session and removes the test speakers. The suite reads `EXITSLIDE_WORKOS_SMOKE_API_KEY` from the environment or the ignored root `.env` and requires a WorkOS test key for the AuthKit tenant that serves ExitSlide. It uses the ExitSlide production hostname by default. Set `EXITSLIDE_LIVE_URL` if you move production to another Cloudflare account subdomain.
 
-To run the same check in GitHub Actions, follow the [GitHub staging smoke setup](admin.md#github-actions-staging-smoke).
+To run the same check in GitHub Actions, follow the [GitHub live smoke setup](admin.md#github-actions-live-smoke).
 
 The live smoke covers the following user journeys.
 
@@ -22,9 +22,9 @@ The live smoke covers the following user journeys.
 4. Change the deck URL as the first speaker. Open the original public link and verify the new destination. Delete the Session and verify that the link is unavailable and that an already-open attendee page cannot accept a rating.
 5. Click **Sign out** once, verify the homepage appears, and reopen `/dashboard` to confirm that WorkOS sign-in is required again.
 
-### Latest staging verification
+### Pre-cutover baseline
 
-`pnpm test:e2e:staging` passed against the live staging deployment after the ExitSlide homepage was set as the default WorkOS **Sign-out URI**. The test verified hosted sign-in, Session publishing and editing, private feedback, public slide access with optional anonymous ratings, and Session retirement. One click on **Sign out** returned to the ExitSlide homepage. Opening `/dashboard` again required sign-in. See the [staging setup](admin.md#cloudflare-staging).
+On 21 November 2026, GitHub Actions successfully ran `pnpm test:e2e:staging` on `main` at merge commit `6e10a3f`. The runner used the `staging` environment secret to provision and remove the two WorkOS test speakers and exercise the live Session flow through sign-out. A separate request to `/healthz` returned HTTP 200 and reported the private backend. [Staging smoke run](https://github.com/lirantal/exitslide-app/actions/runs/44904227187)
 
 ## Restore a prior Worker version
 

@@ -13,7 +13,7 @@
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "test:e2e:staging": "playwright test --config playwright.staging.config.ts"
+    "test:e2e:live": "playwright test --config playwright.live.config.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
