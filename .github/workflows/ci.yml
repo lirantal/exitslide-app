@@ -3,6 +3,12 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    # Keep these exclusions in sync with the pre-deploy diff check below.
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+      - '.agents/**'
+      - '.codex/**'
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
 permissions:
@@ -106,7 +112,7 @@ jobs:
             '.name == "exitslide" and .uuid == $id' >/dev/null
           pnpm exec cf workers secrets list --worker exitslide-frontend | jq -e \
             '(["WORKOS_CLIENT_ID", "WORKOS_REDIRECT_URI", "WORKOS_COOKIE_PASSWORD"] - map(.name)) | length == 0' >/dev/null
-      - name: Check the verified commit still heads main
+      - name: Check main has no newer deployable changes
         id: current
         run: |
           read -r head _ <<< "$(git ls-remote --exit-code origin refs/heads/main)"
@@ -114,7 +120,17 @@ jobs:
           if [[ "$head" == "$GITHUB_SHA" ]]; then
             echo 'deploy=true' >> "$GITHUB_OUTPUT"
           else
-            echo 'This commit was superseded on main. Skipping production deploy.'
+            # Ignored pushes have no replacement deploy run. Let this verified
+            # commit deploy when only those files differ from the current main.
+            git fetch --no-tags --depth=1 origin "$head"
+            if git diff --quiet --no-renames "$GITHUB_SHA" "$head" -- . \
+              ':(top,exclude,glob)docs/**' ':(top,exclude,literal)README.md' \
+              ':(top,exclude,glob).agents/**' ':(top,exclude,glob).codex/**'; then
+              echo 'deploy=true' >> "$GITHUB_OUTPUT"
+              echo 'Only ignored files changed on main. Deploying this verified commit.'
+            else
+              echo 'This commit was superseded on main. Skipping production deploy.'
+            fi
           fi
       - name: Apply D1 migrations
         if: steps.current.outputs.deploy == 'true'

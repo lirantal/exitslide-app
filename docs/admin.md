@@ -2,9 +2,13 @@
 
 ## GitHub Actions production releases
 
-A push to `main` runs Verify on that commit. Once it passes, **Deploy production** builds both Workers, checks the Cloudflare configuration, and applies D1 migrations before deploying the private backend and public frontend. The same run checks `/healthz` and runs Live smoke after deploying. Pull requests run Verify. The frontend's Cloudflare SCM integration is configured for branch previews. Its production deploy command is a no-op, so GitHub Actions controls production release order.
+A push to `main` runs Verify on that commit unless every changed file is under `docs/`, `.agents/`, or `.codex/`, or is the root `README.md`. Those documentation and agent-configuration changes skip the push workflow and production deployment. Any other changed path, including application code, dependencies, migrations, or GitHub Actions workflows, triggers the normal release, even when mixed with ignored files. PR labels do not control production releases.
 
-To start a production release manually, open [Verify in GitHub Actions](https://github.com/lirantal/exitslide-app/actions/workflows/ci.yml), click **Run workflow**, select `main`, and confirm **Run workflow**. This requires write access to the repository. The manual run uses the same checks, deploy order, and concurrency group as pushes to `main`.
+Once Verify passes, **Deploy production** builds both Workers, checks the Cloudflare configuration, and applies D1 migrations before deploying the private backend and public frontend. The same run checks `/healthz` and runs Live smoke after deploying. Pull requests run Verify. The frontend's Cloudflare SCM integration is configured for branch previews. Its production deploy command is a no-op, so GitHub Actions controls production release order.
+
+If a newer commit on `main` changes deployable files, the older run skips deployment. If only ignored files differ, the older run can still deploy its verified commit, so a documentation merge does not strand a pending application release.
+
+To start a production release manually, open [Verify in GitHub Actions](https://github.com/lirantal/exitslide-app/actions/workflows/ci.yml), click **Run workflow**, select `main`, and confirm **Run workflow**. This requires write access to the repository. The manual run bypasses the path filter and uses the same checks, deploy order, and concurrency group as pushes to `main`.
 
 In **Settings → Secrets and variables → Actions**, add these repository settings before enabling the workflow on `main`.
 
