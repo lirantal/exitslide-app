@@ -1,5 +1,5 @@
 {
-  "previews_enabled": false,
+  "previews_enabled": true,
   "production_settings": {
     "root_directory": "/",
     "build_caching_enabled": true,

@@ -82,7 +82,7 @@ Authorize the Cloudflare GitHub App for `lirantal/exitslide-app` and connect it 
 bash ops/cloudflare/configure-preview-builds.sh
 ```
 
-Preview builds remain paused until the build credential is approved. Workers Builds requires a user token. **Workers Scripts → Edit** covers Workers across the `brain-labs` account. After an approved token is registered with Workers Builds, set `EXITSLIDE_BUILDS_TOKEN_UUID` to the build token UUID, set `previews_enabled` to `true` in the settings file, and apply the configuration. Keep token values out of the repo. [Workers Builds token support](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/#api-token)
+Workers Builds uses the **ExitSlide native preview deploy** user token with **Workers Scripts → Edit** scoped to `brain-labs`. That permission covers Workers across the account. The script reuses the configured token. When rotating it, register the replacement with Workers Builds and set `EXITSLIDE_BUILDS_TOKEN_UUID` to its build token UUID before applying the configuration. Keep token values out of the repo. [Workers Builds token support](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/#api-token)
 
 The frontend release config enables `workers.dev` Preview routing. To apply this routing before the first release, use `cf workers triggers deploy` on the release build. This applies routing without uploading a Worker version. Cloudflare uses this toggle for both native Preview URLs and Version URLs, which serve the bindings of the selected Worker version. [Cloudflare Preview URLs](https://developers.cloudflare.com/workers/previews/custom-domains/) · [Version URLs](https://developers.cloudflare.com/workers/versions-and-deployments/version-urls/)
 

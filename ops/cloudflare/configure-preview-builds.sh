@@ -20,7 +20,7 @@ settings=$(jq --arg production "${EXITSLIDE_BUILDS_TOKEN_UUID:-$production_token
   .previews_base_config.build_token_uuid = $preview' ops/cloudflare/preview-builds.json)
 
 patch_previews=()
-if jq -e '.previews_enabled' <<< "$settings" >/dev/null; then
+if jq -e '.previews_enabled' <<< "$current" >/dev/null && jq -e '.previews_enabled' <<< "$settings" >/dev/null; then
   patch_previews=(--patch-existing-previews true)
 fi
 pnpm exec cf builds workers edit "$tag" --body "$settings" "${patch_previews[@]}" >/dev/null
