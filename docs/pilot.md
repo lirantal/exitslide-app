@@ -4,7 +4,7 @@
 
 Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and `pnpm test:e2e`. Worker tests apply the Drizzle migrations to real local D1. The Playwright test runs both Workers with a local AuthKit fixture, two speaker identities, and an anonymous mobile attendee. It checks edit and delete behavior, private feedback, an interrupted rating response, and the sign-out redirect.
 
-The GitHub Actions Verify job runs these same checks on pull requests and pushes to `main`. On pull requests it also builds and browser-tests the [fixture preview](admin.md#frontend-pr-previews). Verify needs no Cloudflare or WorkOS credentials. Successful pushes to `main` continue into the [production release workflow](admin.md#github-actions-production-releases).
+The GitHub Actions Verify job runs these same checks on pull requests and pushes to `main`, subject to the documented documentation-PR shortcut and push path exclusions. On pull requests that run full Verify it also builds and browser-tests the [fixture preview](admin.md#frontend-pr-previews). Verify needs no Cloudflare or WorkOS credentials. Successful pushes to `main` outside the excluded paths continue into the [production release workflow](admin.md#github-actions-production-releases).
 
 ## Live checks
 
@@ -14,7 +14,7 @@ Run `pnpm test:e2e:live` after deploying. The suite uses real hosted sign-in, pr
 
 GitHub Actions runs the same check automatically after a production deploy. After a manual deploy or rollback, use the [manual Live smoke dispatch](admin.md#github-actions-live-smoke) or run the suite locally.
 
-For a failed release, check the last successful step. If the commit still heads `main`, fix the cause and rerun failed jobs. A smoke-only rerun repeats verification. A deploy rerun applies pending migrations and redeploys both Workers. If the commit has been superseded, use the new `main` run. Use compatible migrations so the existing Workers can continue to serve requests while deployment is underway.
+For a failed release, check the last successful step. If the commit still heads `main`, or only ignored files differ from `main`, fix the cause and rerun failed jobs. A smoke-only rerun repeats verification. A deploy rerun applies pending migrations and redeploys both Workers. If deployable files have changed since that commit, use the new `main` run or manually dispatch Verify on `main`. Use compatible migrations so the existing Workers can continue to serve requests while deployment is underway.
 
 The live smoke covers the following user journeys.
 
