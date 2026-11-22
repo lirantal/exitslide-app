@@ -27,7 +27,7 @@ function Home() {
           <h1 className="max-w-[13ch] text-[clamp(2.6rem,6vw,5rem)] leading-[1.02] font-bold tracking-[-0.06em]">
             Give your talk a <span className="text-primary">good exit.</span>
           </h1>
-          <p className="max-w-[34ch] text-lg leading-relaxed text-slate-600">
+          <p className="max-w-[34ch] text-lg leading-relaxed text-pretty text-slate-600">
             Share your slides and collect quick audience feedback from a single session link.
           </p>
           {auth === 'failed' && <p role="alert" className="text-sm text-red-700">Sign-in could not be completed. Try again.</p>}
@@ -42,7 +42,7 @@ function Home() {
               <div className="slide-cover rounded-xl px-4 py-5 text-xl font-semibold tracking-tight sm:px-5">
                 <span className="relative block max-w-[16ch]">Making the web work for everyone</span>
               </div>
-              <div className="rounded-lg bg-primary px-3 py-2 text-center text-sm font-medium text-white">Get slides</div>
+              <div className="rounded-lg bg-primary px-3 py-2 text-center text-sm font-medium text-primary-foreground">Get slides</div>
               <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-border pt-3 text-sm">
                 <span>Rate this Session</span>
                 <span className="text-xl tracking-wide text-amber-700">★★★★★</span>
