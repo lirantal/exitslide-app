@@ -7,6 +7,7 @@ import { loadPublicSession } from '../server/public-sessions'
 import type { ReactNode } from 'react'
 
 export const Route = createFileRoute('/s/$sessionId')({
+  head: () => ({ meta: [{ title: 'Session slides and feedback | ExitSlide' }] }),
   staleTime: 0,
   preloadStaleTime: 0,
   loader: {

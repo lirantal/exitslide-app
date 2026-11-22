@@ -4,7 +4,10 @@ import { SessionForm } from '../components/session-form'
 import { createSession } from '../server/sessions'
 import { serverAnalyticsContext } from '../analytics/product-analytics'
 
-export const Route = createFileRoute('/dashboard/new')({ component: NewSession })
+export const Route = createFileRoute('/dashboard/new')({
+  head: () => ({ meta: [{ title: 'New Session | ExitSlide' }] }),
+  component: NewSession,
+})
 
 function NewSession() {
   const create = useServerFn(createSession)

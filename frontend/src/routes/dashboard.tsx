@@ -12,6 +12,7 @@ const isSignedIn = createServerFn({ method: 'GET' }).handler(async () => {
 })
 
 export const Route = createFileRoute('/dashboard')({
+  head: () => ({ meta: [{ title: 'Speaker dashboard | ExitSlide' }] }),
   beforeLoad: async () => {
     if (!(await isSignedIn())) {
       throw redirect({ href: '/sign-in' })
