@@ -8,6 +8,7 @@ import { deleteSession, listRatings, loadSession, updateSession } from '../serve
 import { captureProductEvent, serverAnalyticsContext } from '../analytics/product-analytics'
 
 export const Route = createFileRoute('/dashboard/$sessionId')({
+  head: () => ({ meta: [{ title: 'Session details | ExitSlide' }] }),
   validateSearch: (search: Record<string, unknown>): { cursor?: string } => {
     const cursor = sessionIdSchema.safeParse(search.cursor).data
     return cursor ? { cursor } : {}
