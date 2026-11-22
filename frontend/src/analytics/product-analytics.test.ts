@@ -33,13 +33,22 @@ afterEach(() => {
   vi.unstubAllEnvs()
 })
 
-test('does not load or call PostHog before consent, after rejection, or on public pages', async () => {
+test('starts dashboard analytics by default without storing an affirmative preference', async () => {
   const analytics = await import('./product-analytics')
+  expect(analytics.isProductAnalyticsEnabled()).toBe(true)
   await analytics.startProductAnalytics()
   analytics.captureProductEvent('session_created')
-  analytics.saveAnalyticsConsent(false)
+  expect(sdk.init).toHaveBeenCalledOnce()
+  expect(sdk.capture).toHaveBeenCalledWith('session_created')
+  expect(window.localStorage.getItem(analytics.analyticsPreferenceKey)).toBeNull()
+})
+
+test('does not load or call PostHog after opt-out or on public pages', async () => {
+  const analytics = await import('./product-analytics')
+  analytics.saveAnalyticsPreference(false)
   await analytics.startProductAnalytics()
-  analytics.saveAnalyticsConsent(true)
+  analytics.captureProductEvent('session_created')
+  analytics.saveAnalyticsPreference(true)
   window.location.pathname = '/s/private-session-id'
   await analytics.startProductAnalytics()
   expect(sdkImported).not.toHaveBeenCalled()
@@ -48,7 +57,7 @@ test('does not load or call PostHog before consent, after rejection, or on publi
 
 test('only sends allowed events with anonymous protocol fields and a fixed screen', async () => {
   const analytics = await import('./product-analytics')
-  analytics.saveAnalyticsConsent(true)
+  analytics.saveAnalyticsPreference(true)
   await analytics.startProductAnalytics()
   expect(sdk.init).toHaveBeenCalledWith('phc_test', expect.objectContaining({
     api_host: 'https://eu.i.posthog.com', person_profiles: 'never',
@@ -82,7 +91,7 @@ test('only sends allowed events with anonymous protocol fields and a fixed scree
 
 test('stops new captures on withdrawal, public navigation and sign-out', async () => {
   const analytics = await import('./product-analytics')
-  analytics.saveAnalyticsConsent(true)
+  analytics.saveAnalyticsPreference(true)
   await analytics.startProductAnalytics()
   analytics.captureProductEvent('session_created')
   expect(sdk.capture).toHaveBeenCalledOnce()
@@ -90,21 +99,24 @@ test('stops new captures on withdrawal, public navigation and sign-out', async (
   analytics.captureProductEvent('session_updated')
   expect(analytics.filterProductEvent({ uuid: 'test-event', event: 'session_created', properties: {} })).toBeNull()
   window.location.pathname = '/dashboard'
-  analytics.saveAnalyticsConsent(false)
+  analytics.saveAnalyticsPreference(false)
   analytics.revokeProductAnalytics()
   analytics.captureProductEvent('session_deleted')
   expect(sdk.capture).toHaveBeenCalledOnce()
   expect(sdk.opt_out_capturing).toHaveBeenCalledOnce()
-  analytics.saveAnalyticsConsent(true)
+  analytics.saveAnalyticsPreference(true)
   analytics.clearAnalyticsOnSignOut()
-  expect(analytics.hasAnalyticsConsent()).toBe(false)
+  expect(analytics.isProductAnalyticsEnabled()).toBe(true)
+  analytics.saveAnalyticsPreference(false)
+  analytics.clearAnalyticsOnSignOut()
+  expect(analytics.isProductAnalyticsEnabled()).toBe(false)
 })
 
-test('does not initialize when consent is withdrawn while the SDK import is pending', async () => {
+test('does not initialize when the user opts out while the SDK import is pending', async () => {
   const analytics = await import('./product-analytics')
-  analytics.saveAnalyticsConsent(true)
+  analytics.saveAnalyticsPreference(true)
   const starting = analytics.startProductAnalytics()
-  analytics.saveAnalyticsConsent(false)
+  analytics.saveAnalyticsPreference(false)
   analytics.revokeProductAnalytics()
   await starting
   expect(sdk.init).not.toHaveBeenCalled()
@@ -113,7 +125,7 @@ test('does not initialize when consent is withdrawn while the SDK import is pend
 test('fixture previews and ordinary local development never initialize PostHog', async () => {
   vi.stubEnv('MODE', 'pr-preview')
   let analytics = await import('./product-analytics')
-  analytics.saveAnalyticsConsent(true)
+  analytics.saveAnalyticsPreference(true)
   await analytics.startProductAnalytics()
   expect(analytics.analyticsConfigured).toBe(false)
   vi.resetModules()
@@ -129,7 +141,7 @@ test('unavailable browser storage fails closed', async () => {
   const analytics = await import('./product-analytics')
   window.localStorage.getItem = () => { throw new Error('Blocked') }
   window.localStorage.setItem = () => { throw new Error('Blocked') }
-  expect(analytics.saveAnalyticsConsent(true)).toBe(false)
+  expect(analytics.saveAnalyticsPreference(true)).toBe(false)
   await analytics.startProductAnalytics()
   expect(sdkImported).not.toHaveBeenCalled()
 })

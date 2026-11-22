@@ -1,6 +1,7 @@
 import type { CaptureResult, PostHog } from 'posthog-js'
 
-export const analyticsConsentKey = 'exitslide:product-analytics:v1'
+// Keep the existing key and values so previously saved opt-outs remain effective.
+export const analyticsPreferenceKey = 'exitslide:product-analytics:v1'
 
 const events = [
   'dashboard_viewed', 'session_create_started', 'session_detail_viewed',
@@ -19,17 +20,18 @@ let client: PostHog | undefined
 let active = false
 let generation = 0
 
-export function hasAnalyticsConsent() {
+export function isProductAnalyticsEnabled() {
   try {
-    return window.localStorage.getItem(analyticsConsentKey) === 'accepted'
+    const preference = window.localStorage.getItem(analyticsPreferenceKey)
+    return preference === null || preference === 'accepted'
   } catch {
     return false
   }
 }
 
-export function saveAnalyticsConsent(accepted: boolean) {
+export function saveAnalyticsPreference(enabled: boolean) {
   try {
-    window.localStorage.setItem(analyticsConsentKey, accepted ? 'accepted' : 'declined')
+    window.localStorage.setItem(analyticsPreferenceKey, enabled ? 'accepted' : 'declined')
     return true
   } catch {
     return false
@@ -48,7 +50,7 @@ function dashboardScreen() {
 // Allow only protocol/pseudonymous identity fields and our fixed screen names.
 export function filterProductEvent(event: CaptureResult | null): CaptureResult | null {
   const screen = dashboardScreen()
-  if (!event || !active || !hasAnalyticsConsent() || !screen
+  if (!event || !active || !isProductAnalyticsEnabled() || !screen
     || !events.includes(event.event as ProductEvent)) return null
   const allowed = [
     'token', 'distinct_id', '$device_id', '$session_id', '$window_id',
@@ -64,11 +66,11 @@ export function filterProductEvent(event: CaptureResult | null): CaptureResult |
 
 export async function startProductAnalytics() {
   const attempt = ++generation
-  if (!analyticsConfigured || !hasAnalyticsConsent() || !dashboardScreen()) return
+  if (!analyticsConfigured || !isProductAnalyticsEnabled() || !dashboardScreen()) return
   try {
-    // No PostHog code, requests, or analytics storage before explicit consent.
+    // Load only in the dashboard, unless this browser has opted out.
     const { default: posthog } = await import('posthog-js/no-external')
-    if (attempt !== generation || !hasAnalyticsConsent() || !dashboardScreen()) return
+    if (attempt !== generation || !isProductAnalyticsEnabled() || !dashboardScreen()) return
     if (!client) {
       posthog.init(token!, {
         api_host: 'https://eu.i.posthog.com',
@@ -122,11 +124,9 @@ export function revokeProductAnalytics() {
 
 export function clearAnalyticsOnSignOut() {
   revokeProductAnalytics()
-  try {
-    window.localStorage.removeItem(analyticsConsentKey)
-  } catch { /* Unavailable storage already prevents consent. */ }
+  // Keep the browser's preference so sign-out never undoes an explicit opt-out.
 }
 
 export function captureProductEvent(event: ProductEvent) {
-  if (active && hasAnalyticsConsent() && dashboardScreen()) client?.capture(event)
+  if (active && isProductAnalyticsEnabled() && dashboardScreen()) client?.capture(event)
 }

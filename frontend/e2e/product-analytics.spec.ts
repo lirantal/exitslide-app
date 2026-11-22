@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 
 test.use({ userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36' })
 
-test('PostHog stays off until dashboard consent, sends sanitized actions, and stops on withdrawal', async ({ page, baseURL }) => {
+test('PostHog starts by default in the dashboard, sends sanitized actions, and respects opt-out', async ({ page, baseURL }) => {
   // Exercise the production bot filter with a normal-browser environment.
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'webdriver', { get: () => false })
@@ -36,15 +36,14 @@ test('PostHog stays off until dashboard consent, sends sanitized actions, and st
 
   await page.context().addCookies([{ name: 'exitslide-test-user', value: 'user_second', url: baseURL! }])
   await page.goto('/dashboard')
+  await expect.poll(() => captured.some(event => event.event === 'dashboard_viewed')).toBe(true)
   await page.getByText('Privacy preferences', { exact: true }).click()
-  const consent = page.getByRole('checkbox', { name: 'Allow optional product analytics' })
-  await expect(consent).toBeEnabled()
-  await expect(consent).not.toBeChecked()
+  const preference = page.getByRole('checkbox', { name: 'Product analytics', exact: true })
+  await expect(preference).toBeEnabled()
+  await expect(preference).toBeChecked()
+  expect(await page.evaluate(() => localStorage.getItem('exitslide:product-analytics:v1'))).toBeNull()
   await page.getByRole('link', { name: 'New Session' }).click()
   await expect(page.getByRole('heading', { name: 'New Session' })).toBeVisible()
-  expect(requests).toEqual([])
-
-  await consent.check()
   await expect.poll(() => ({ requests, captured })).toMatchObject({
     captured: expect.arrayContaining([expect.objectContaining({ event: 'session_create_started' })]),
   })
@@ -66,7 +65,7 @@ test('PostHog stays off until dashboard consent, sends sanitized actions, and st
     && new URL(url).pathname.endsWith('/e/'))).toBe(true)
   expect((await page.context().cookies()).filter(cookie => cookie.name.startsWith('ph_'))).toEqual([])
 
-  await consent.uncheck()
+  await preference.uncheck()
   const count = requests.length
   await page.getByRole('link', { name: 'ExitSlide', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Speaker dashboard' })).toBeVisible()
@@ -74,7 +73,16 @@ test('PostHog stays off until dashboard consent, sends sanitized actions, and st
   expect(await page.evaluate(() => Object.keys(localStorage).filter(key => /^ph_.*_posthog$/.test(key)))).toEqual([])
   await page.reload()
   await page.getByText('Privacy preferences', { exact: true }).click()
-  await expect(consent).not.toBeChecked()
+  await expect(preference).not.toBeChecked()
+  expect(requests).toHaveLength(count)
+
+  await page.getByRole('button', { name: 'Sign out' }).click()
+  await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toBeVisible()
+  await page.context().addCookies([{ name: 'exitslide-test-user', value: 'user_second', url: baseURL! }])
+  await page.goto('/dashboard')
+  await page.getByText('Privacy preferences', { exact: true }).click()
+  await expect(preference).toBeEnabled()
+  await expect(preference).not.toBeChecked()
   expect(requests).toHaveLength(count)
 
   // Even a previously accepted browser sends no PostHog requests on public pages.
