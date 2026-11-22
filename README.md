@@ -4,7 +4,7 @@ ExitSlide lets speakers share slides and collect optional ratings after a Sessio
 
 See [Architecture and development workflow](docs/architecture.md) for the two-Worker request flow, WorkOS integration, and testing and commit conventions.
 
-[Product analytics](docs/analytics.md) documents the opt-in PostHog EU integration, collected events, and release verification.
+[Product analytics](docs/analytics.md) documents the default-on PostHog EU integration, opt-out preference, collected events, and release verification.
 
 ## Local development
 
