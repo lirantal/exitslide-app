@@ -2,7 +2,9 @@ import { sessionIdSchema } from '@exitslide/contracts'
 import { createFileRoute, Link, notFound, useRouter } from '@tanstack/react-router'
 import { RatingForm } from '../components/rating-form'
 import { Button, buttonVariants } from '../components/ui/button'
+import { Wordmark } from '../components/wordmark'
 import { loadPublicSession } from '../server/public-sessions'
+import type { ReactNode } from 'react'
 
 export const Route = createFileRoute('/s/$sessionId')({
   staleTime: 0,
@@ -26,31 +28,57 @@ function PublicSessionPage() {
   const { sessionId } = Route.useParams()
   const router = useRouter()
   if (!result.ok) return (
-    <section className="grid gap-4">
-      <h1 className="text-2xl font-semibold">Couldn’t load the Session</h1>
-      <p role="alert" className="text-slate-600">{result.message}</p>
-      <div><Button variant="outline" onClick={() => void router.invalidate()}>Try again</Button></div>
-    </section>
+    <AttendeeScreen>
+      <section className="surface grid gap-4 p-5 sm:p-7">
+        <h1 className="text-2xl font-semibold">Couldn’t load the Session</h1>
+        <p role="alert" className="text-slate-600">{result.message}</p>
+        <div><Button variant="outline" onClick={() => void router.invalidate()}>Try again</Button></div>
+      </section>
+    </AttendeeScreen>
   )
 
   return (
-    <section className="mx-auto w-full max-w-lg space-y-6">
-      <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 sm:p-8">
-        <h1 className="break-words text-3xl font-semibold tracking-tight sm:text-4xl">{result.data.title}</h1>
-        <a href={result.data.slideUrl} target="_blank" rel="noopener noreferrer"
-          aria-label="Get slides (opens in a new tab)" className={buttonVariants()}>Get slides</a>
-      </div>
+    <AttendeeScreen>
+      <section className="surface overflow-hidden">
+        <div className="slide-cover flex min-h-40 items-end px-5 py-7 sm:min-h-52 sm:p-8">
+          <h1 className="max-w-[20ch] text-[clamp(1.9rem,5vw,2.8rem)] leading-[1.08] font-bold tracking-tight [overflow-wrap:anywhere]">
+            {result.data.title}
+          </h1>
+        </div>
+        <div className="p-4 sm:p-5">
+          <a href={result.data.slideUrl} target="_blank" rel="noopener noreferrer"
+            aria-label="Get slides (opens in a new tab)"
+            className={buttonVariants({ className: 'min-h-12 w-full' })}>Get slides</a>
+        </div>
+      </section>
       <RatingForm key={sessionId} sessionId={sessionId} />
-    </section>
+    </AttendeeScreen>
   )
 }
 
 function UnavailableSession() {
   return (
-    <section className="grid gap-4">
-      <h1 className="text-2xl font-semibold">This Session is unavailable</h1>
-      <p className="text-slate-600">The speaker may have retired the link, or the URL may be incorrect.</p>
-      <Link to="/" search={{}} className="text-sm font-medium underline">Go to ExitSlide</Link>
-    </section>
+    <AttendeeScreen>
+      <section className="surface grid justify-items-start gap-4 p-5 sm:p-7">
+        <h1 className="text-2xl font-semibold">This Session is unavailable</h1>
+        <p className="text-slate-600">The speaker may have retired the link, or the URL may be incorrect.</p>
+        <Link to="/" search={{}} className="app-link">Go to ExitSlide</Link>
+      </section>
+    </AttendeeScreen>
+  )
+}
+
+function AttendeeScreen({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <header className="app-bar">
+        <div className="app-bar-content mx-auto max-w-lg px-4 sm:px-5">
+          <Wordmark />
+        </div>
+      </header>
+      <main className="mx-auto grid w-full max-w-lg gap-4 px-4 py-5 sm:gap-5 sm:px-5 sm:py-10">
+        {children}
+      </main>
+    </>
   )
 }

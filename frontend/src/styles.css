@@ -1,18 +1,79 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: var(--color-slate-900);
+  --color-primary: #2344c9;
   --color-primary-foreground: var(--color-white);
-  --color-border: var(--color-slate-300);
+  --color-border: #d7deea;
   --color-background: var(--color-white);
-  --color-accent: var(--color-slate-100);
-  --color-ring: var(--color-slate-900);
+  --color-accent: #eef2ff;
+  --color-ring: var(--color-primary);
 }
 
 body {
-  @apply bg-slate-50 font-sans text-slate-950 antialiased;
+  @apply bg-[#f5f7fc] font-sans text-slate-950 antialiased;
 }
 
 input:not([type="radio"]):not([type="checkbox"]) {
-  @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-base text-slate-950 focus-visible:outline-2 focus-visible:outline-slate-900;
+  @apply min-h-11 w-full rounded-lg border border-slate-400 bg-white px-3 py-2 text-base text-slate-950 focus-visible:outline-2 focus-visible:outline-ring;
+}
+
+@layer components {
+  .page-width {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-8;
+  }
+
+  .app-bar {
+    @apply border-b border-border bg-background;
+  }
+
+  .app-bar-content {
+    @apply flex min-h-16 flex-wrap items-center justify-between gap-2 py-2;
+  }
+
+  .brand-mark {
+    @apply relative grid size-8 shrink-0 place-items-center rounded-[0.6rem] bg-primary;
+  }
+
+  .brand-mark::before {
+    @apply size-4 rounded-sm border-[1.5px] border-white;
+    content: "";
+    transform: translate(-1px, 1px);
+  }
+
+  .brand-mark::after {
+    @apply absolute size-2 rounded-[2px] bg-white;
+    content: "";
+    transform: translate(4px, -4px);
+  }
+
+  .app-link {
+    @apply rounded-sm font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring;
+  }
+
+  .surface {
+    @apply min-w-0 rounded-2xl border border-border bg-background shadow-[0_2px_8px_#14265c06];
+  }
+
+  .demo-stage {
+    @apply m-0 grid min-w-0 justify-items-center gap-4 rounded-[1.75rem] border border-[#d9e1f7] bg-[#e8edff] px-4 py-6 sm:p-8 lg:p-10;
+    background-image: radial-gradient(#b8c6f0 1px, transparent 1px);
+    background-size: 14px 14px;
+  }
+
+  .demo-window {
+    @apply w-full max-w-xs overflow-hidden rounded-2xl border border-white bg-background shadow-[0_14px_34px_#283e7d2b];
+  }
+
+  .slide-cover {
+    @apply relative isolate overflow-hidden bg-[#182653] text-white;
+  }
+
+  .slide-cover::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: repeating-radial-gradient(circle at 100% 115%, #7192ff55 0 1px, transparent 2px 21px),
+      linear-gradient(120deg, #182653 18%, #2344c9);
+  }
 }
