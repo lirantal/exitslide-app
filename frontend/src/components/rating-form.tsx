@@ -43,28 +43,28 @@ export function RatingForm({ sessionId }: { sessionId: string }) {
 
   const finished = state.kind === 'saved' || state.kind === 'unavailable'
   return (
-    <form method="post" onSubmit={submit} className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 sm:p-8">
-      <fieldset disabled={!ready || state.kind !== 'ready'}>
-        <legend className="mb-3 text-xl font-semibold">Rate this Session <span className="text-sm font-normal text-slate-600">(optional)</span></legend>
-        <div className="flex flex-wrap gap-1">
+    <form method="post" onSubmit={submit} className="surface grid gap-4 p-4 sm:p-5">
+      <fieldset disabled={!ready || state.kind !== 'ready'} className="min-w-0">
+        <legend className="mb-3 text-lg font-semibold">Rate this Session <span className="text-sm font-normal text-slate-600">(optional)</span></legend>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(2.75rem,1fr))] gap-1.5">
           {[1, 2, 3, 4, 5].map(score => (
-            <label key={score} className="cursor-pointer">
+            <label key={score} className="has-enabled:cursor-pointer">
               <input type="radio" name="rating" value={score} checked={selected === score}
                 onChange={() => setSelected(score)} className="peer sr-only"
                 aria-label={score === 1 ? '1 star' : score + ' stars'} />
               <span aria-hidden="true" className={
-                'grid size-10 place-items-center rounded-md border border-slate-200 text-2xl peer-focus-visible:outline-2 peer-focus-visible:outline-slate-900 ' +
-                ((selected ?? 0) >= score ? 'border-amber-500 bg-amber-50 text-amber-800' : 'text-slate-400')
-              }>★</span>
+                'grid min-h-11 place-items-center rounded-lg border text-2xl peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring ' +
+                ((selected ?? 0) >= score ? 'border-amber-500 bg-amber-50 text-amber-800' : 'border-border bg-slate-50 text-slate-600')
+              }>{(selected ?? 0) >= score ? '★' : '☆'}</span>
             </label>
           ))}
         </div>
       </fieldset>
-      {state.kind === 'saved' && <p role="status" className="font-medium">Thanks for your feedback.</p>}
-      {(state.kind === 'retry' || state.kind === 'unavailable') && <p role="alert" className="text-sm text-red-700">{state.message}</p>}
+      {state.kind === 'saved' && <p role="status" className="rounded-lg bg-emerald-50 px-3 py-2 font-medium text-emerald-900">Thanks for your feedback.</p>}
+      {(state.kind === 'retry' || state.kind === 'unavailable') && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{state.message}</p>}
       {!finished && (
         <div>
-          <Button type="submit" variant="outline" disabled={!selected || state.kind === 'sending'}>
+          <Button type="submit" variant="outline" className="min-h-11 w-full" disabled={!selected || state.kind === 'sending'}>
             {state.kind === 'sending' ? 'Submitting…' : state.kind === 'retry' ? 'Retry rating' : 'Submit rating'}
           </Button>
         </div>

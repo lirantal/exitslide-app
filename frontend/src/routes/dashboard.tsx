@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { getAuth } from '@workos/authkit-tanstack-react-start'
 import { Button } from '../components/ui/button'
+import { Wordmark } from '../components/wordmark'
 import { ProductAnalytics } from '../components/product-analytics'
 import { clearAnalyticsOnSignOut } from '../analytics/product-analytics'
 
@@ -23,14 +24,22 @@ export const Route = createFileRoute('/dashboard')({
 function Dashboard() {
   return (
     <>
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
-        <Link to="/dashboard" search={{}} className="text-lg font-semibold focus-visible:outline-2">ExitSlide</Link>
-        <form action="/sign-out" method="post" onSubmit={clearAnalyticsOnSignOut}>
-          <Button type="submit" variant="outline">Sign out</Button>
-        </form>
+      <header className="app-bar">
+        <div className="page-width app-bar-content">
+          <Link to="/dashboard" search={{}} className="rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">
+            <Wordmark />
+          </Link>
+          <form action="/sign-out" method="post" onSubmit={clearAnalyticsOnSignOut}>
+            <Button type="submit" variant="outline">Sign out</Button>
+          </form>
+        </div>
       </header>
-      <Outlet />
-      <ProductAnalytics />
+      <main className="page-width py-6 sm:py-10">
+        <Outlet />
+      </main>
+      <footer className="page-width pb-6">
+        <ProductAnalytics />
+      </footer>
     </>
   )
 }

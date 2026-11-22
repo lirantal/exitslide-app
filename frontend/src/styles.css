@@ -1,18 +1,95 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: var(--color-slate-900);
+  --color-primary: oklch(0.4581 0.2085 266.49);
   --color-primary-foreground: var(--color-white);
-  --color-border: var(--color-slate-300);
+  --color-canvas: oklch(0.976 0.007 268.55);
   --color-background: var(--color-white);
-  --color-accent: var(--color-slate-100);
-  --color-ring: var(--color-slate-900);
+  --color-foreground: var(--color-slate-950);
+  --color-accent: oklch(0.962 0.018 272.31);
+  --color-border: oklch(0.899 0.018 261.34);
+  --color-control-border: oklch(0.64 0.04 263);
+  --color-ring: var(--color-primary);
+  --color-slide-cover: oklch(0.284 0.084 267.78);
+  --shadow-surface: 0 2px 8px oklch(0.29 0.1 266.28 / 2.4%);
+  --shadow-demo: 0 14px 34px oklch(0.382 0.11 266.7 / 17%);
 }
 
 body {
-  @apply bg-slate-50 font-sans text-slate-950 antialiased;
+  @apply bg-canvas font-sans text-foreground antialiased;
 }
 
 input:not([type="radio"]):not([type="checkbox"]) {
-  @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-base text-slate-950 focus-visible:outline-2 focus-visible:outline-slate-900;
+  @apply min-h-11 w-full rounded-lg border border-control-border bg-background px-3 py-2 text-base text-foreground focus-visible:outline-2 focus-visible:outline-ring;
+}
+
+@layer components {
+  .page-width {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-8;
+  }
+
+  .app-bar {
+    @apply border-b border-border bg-background;
+  }
+
+  .app-bar-content {
+    @apply flex min-h-16 flex-wrap items-center justify-between gap-2 py-2;
+  }
+
+  .brand-mark {
+    @apply relative grid size-8 shrink-0 place-items-center rounded-[0.6rem] bg-primary;
+  }
+
+  .brand-mark::before {
+    @apply size-4 rounded-sm border-[1.5px] border-white;
+    content: "";
+    transform: translate(-1px, 1px);
+  }
+
+  .brand-mark::after {
+    @apply absolute size-2 rounded-[2px] bg-white;
+    content: "";
+    transform: translate(4px, -4px);
+  }
+
+  .app-link {
+    @apply rounded-sm font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring;
+  }
+
+  .surface {
+    @apply min-w-0 rounded-2xl border border-border bg-background shadow-surface;
+  }
+
+  .demo-stage {
+    @apply m-0 grid min-w-0 justify-items-center gap-4 rounded-[1.75rem] border border-border bg-accent px-4 py-6 sm:p-8 lg:p-10;
+  }
+
+  .demo-window {
+    @apply w-full max-w-xs overflow-hidden rounded-2xl border border-white bg-background shadow-demo;
+  }
+
+  .slide-cover {
+    @apply grid grid-cols-[minmax(0,1fr)_min(18%,4.5rem)] gap-3 bg-slide-cover text-primary-foreground;
+  }
+
+  .slide-cover-art {
+    @apply relative aspect-[4/3] self-center;
+  }
+
+  .slide-cover-art::before,
+  .slide-cover-art::after {
+    content: "";
+    position: absolute;
+    border: 1px solid color-mix(in oklch, var(--color-accent) 25%, var(--color-slide-cover));
+    border-radius: 0.28rem;
+  }
+
+  .slide-cover-art::before {
+    inset: 0 0 22% 16%;
+  }
+
+  .slide-cover-art::after {
+    inset: 22% 16% 0 0;
+    background: color-mix(in oklch, var(--color-primary) 35%, var(--color-slide-cover));
+  }
 }

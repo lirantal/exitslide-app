@@ -72,19 +72,61 @@ function SessionDetail() {
   }
 
   return (
-    <section className="grid gap-6">
-      <h1 className="break-words text-3xl font-semibold tracking-tight">{session.title}</h1>
-      <div className="grid gap-2">
-        <label htmlFor="session-link" className="text-sm font-medium">Public Session link</label>
-        <input id="session-link" type="url" readOnly ref={publicLink} value={publicUrl} />
-        <div className="flex flex-wrap items-center gap-3">
-          <Button variant="outline" onClick={copyLink}>Copy link</Button>
-          <a href={publicUrl} className="text-sm font-medium underline">Open Session page</a>
-          {copyMessage && <span role="status" className="text-sm text-slate-600">{copyMessage}</span>}
-        </div>
+    <section className="grid gap-5 sm:gap-6">
+      <div className="grid justify-items-start gap-3">
+        <Link to="/dashboard" search={{}} className="app-link text-sm">All sessions</Link>
+        <h1 className="text-3xl font-bold tracking-tight [overflow-wrap:anywhere] sm:text-4xl">{session.title}</h1>
       </div>
-      <details className="rounded-xl border border-slate-200 bg-white p-4">
-        <summary className="cursor-pointer font-medium">Edit Session</summary>
+      <div className="grid items-start gap-4 md:grid-cols-2 md:gap-5">
+        <section className="surface grid gap-4 p-4 sm:p-6" aria-labelledby="share-heading">
+          <h2 id="share-heading" className="text-xl font-semibold tracking-tight">Share session</h2>
+          <div className="grid gap-1.5">
+            <label htmlFor="session-link" className="text-sm font-medium">Public Session link</label>
+            <input id="session-link" type="url" readOnly ref={publicLink} value={publicUrl} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Button onClick={copyLink} className="min-h-11">Copy link</Button>
+            <a href={publicUrl} className="app-link inline-flex min-h-11 items-center text-sm">Open Session page</a>
+          </div>
+          {copyMessage && <p role="status" className="text-sm text-slate-600">{copyMessage}</p>}
+        </section>
+        <section className="surface grid gap-4 p-4 sm:p-6" aria-labelledby="feedback-heading">
+          <h2 id="feedback-heading" className="text-xl font-semibold tracking-tight">Feedback</h2>
+          {!feedback.ok ? <p role="alert" className="text-red-700">{feedback.message}</p>
+            : feedback.data.items.length === 0 ? (
+              <div className="grid gap-1 rounded-xl bg-slate-50 p-4">
+                <p className="font-medium">No feedback yet.</p>
+                <p className="text-sm text-slate-600">Ratings will appear here as attendees submit them.</p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+                {feedback.data.items.map(item => (
+                  <li key={item.submissionId} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-3">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <span aria-hidden="true" className="text-amber-700">★</span>
+                      <span>{item.score} out of 5</span>
+                    </span>
+                    <time dateTime={item.createdAt} className="text-sm text-slate-600">
+                      {formatRatingDate(item.createdAt)}
+                    </time>
+                  </li>
+                ))}
+              </ul>
+            )}
+          {(cursor || (feedback.ok && feedback.data.nextCursor)) && (
+            <nav className="flex flex-wrap gap-3" aria-label="Feedback pages">
+              {cursor && <Link to="/dashboard/$sessionId" params={{ sessionId: session.id }} search={{}}
+                className={buttonVariants({ variant: 'outline' })}>Newest ratings</Link>}
+              {feedback.ok && feedback.data.nextCursor && (
+                <Link to="/dashboard/$sessionId" params={{ sessionId: session.id }} search={{ cursor: feedback.data.nextCursor }}
+                  className={buttonVariants({ variant: 'outline' })}>Older ratings</Link>
+              )}
+            </nav>
+          )}
+        </section>
+      </div>
+      <details className="surface max-w-2xl p-4 sm:px-6">
+        <summary className="cursor-pointer rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">Edit Session</summary>
         <div className="mt-4">
           <SessionForm key={session.id} initial={session} label="Save changes" onSave={async input => {
             const result = await update({ data: { ...input, id: session.id, analytics: serverAnalyticsContext() } })
@@ -93,32 +135,7 @@ function SessionDetail() {
           }} />
         </div>
       </details>
-      <section className="grid gap-3" aria-labelledby="feedback-heading">
-        <h2 id="feedback-heading" className="text-xl font-semibold">Feedback</h2>
-        {!feedback.ok ? <p role="alert" className="text-red-700">{feedback.message}</p>
-          : feedback.data.items.length === 0 ? <p className="text-slate-600">No feedback yet.</p>
-          : (
-            <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
-              {feedback.data.items.map(item => (
-                <li key={item.submissionId} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-                  <span className="font-medium">{item.score} out of 5</span>
-                  <time dateTime={item.createdAt} className="text-sm text-slate-600">
-                    {formatRatingDate(item.createdAt)}
-                  </time>
-                </li>
-              ))}
-            </ul>
-          )}
-        <nav className="flex flex-wrap gap-3" aria-label="Feedback pages">
-          {cursor && <Link to="/dashboard/$sessionId" params={{ sessionId: session.id }} search={{}}
-            className={buttonVariants({ variant: 'outline' })}>Newest ratings</Link>}
-          {feedback.ok && feedback.data.nextCursor && (
-            <Link to="/dashboard/$sessionId" params={{ sessionId: session.id }} search={{ cursor: feedback.data.nextCursor }}
-              className={buttonVariants({ variant: 'outline' })}>Older ratings</Link>
-          )}
-        </nav>
-      </section>
-      <div>
+      <div className="border-t border-border pt-4">
         <Button variant="outline" disabled={deleting} className="text-red-700" onClick={deleteLink}>
           {deleting ? 'Deleting…' : 'Delete Session'}
         </Button>

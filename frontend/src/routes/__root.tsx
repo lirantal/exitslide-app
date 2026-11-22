@@ -21,9 +21,10 @@ function Root() {
         <HeadContent />
       </head>
       <body>
-        <main className="mx-auto grid min-h-svh max-w-2xl content-start gap-6 px-6 py-12">
+        <div className="min-h-svh">
+          <Outlet />
           {import.meta.env.MODE === 'pr-preview' && (
-            <aside aria-label="Preview controls" className="grid gap-2 rounded-md border border-slate-200 bg-white p-3 text-sm">
+            <aside aria-label="Preview controls" className="page-width grid gap-2 border-t border-border py-4 text-sm">
               <p className="text-slate-700">PR preview · Sample data stays in this browser.</p>
               <a className="underline" href={'/s/' + sampleSessionId}>Open sample Session</a>
               <form action="/__preview/speaker" method="post" className="flex flex-wrap gap-x-4 gap-y-2">
@@ -34,8 +35,7 @@ function Root() {
               </form>
             </aside>
           )}
-          <Outlet />
-        </main>
+        </div>
         <Scripts />
       </body>
     </html>
