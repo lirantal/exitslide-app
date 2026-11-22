@@ -10,7 +10,7 @@ export function getPublicSession(db: DrizzleD1Database, id: string) {
 }
 
 export async function saveRating(db: D1Database, id: string, input: RatingInput) {
-  const [ , read ] = await db.batch<{ score: number }>([
+  const [insert, read] = await db.batch<{ score: number }>([
     db.prepare(`
       INSERT INTO ratings (session_id, submission_id, score, created_at)
       SELECT id, ?, ?, ? FROM sessions WHERE id = ?
@@ -22,7 +22,8 @@ export async function saveRating(db: D1Database, id: string, input: RatingInput)
 
   const existing = read.results[0]
   if (!existing) return 'unavailable'
-  return existing.score === input.score ? 'saved' : 'conflict'
+  if (existing.score !== input.score) return 'conflict'
+  return insert.meta.changes > 0 ? 'saved' : 'duplicate'
 }
 
 export async function listRatings(db: DrizzleD1Database, id: string, cursor?: string) {

@@ -4,6 +4,8 @@ const sdk = {
   opt_in_capturing: vi.fn(),
   opt_out_capturing: vi.fn(),
   capture: vi.fn(),
+  get_distinct_id: vi.fn(() => '12345678-1234-4234-8234-123456789012'),
+  get_session_id: vi.fn(() => '12345678-1234-4234-8234-123456789013'),
 }
 const sdkImported = vi.fn()
 
@@ -37,9 +39,9 @@ test('starts dashboard analytics by default without storing an affirmative prefe
   const analytics = await import('./product-analytics')
   expect(analytics.isProductAnalyticsEnabled()).toBe(true)
   await analytics.startProductAnalytics()
-  analytics.captureProductEvent('session_created')
+  analytics.captureProductEvent('session_link_copied')
   expect(sdk.init).toHaveBeenCalledOnce()
-  expect(sdk.capture).toHaveBeenCalledWith('session_created')
+  expect(sdk.capture).toHaveBeenCalledWith('session_link_copied')
   expect(window.localStorage.getItem(analytics.analyticsPreferenceKey)).toBeNull()
 })
 
@@ -47,7 +49,7 @@ test('does not load or call PostHog after opt-out or on public pages', async () 
   const analytics = await import('./product-analytics')
   analytics.saveAnalyticsPreference(false)
   await analytics.startProductAnalytics()
-  analytics.captureProductEvent('session_created')
+  analytics.captureProductEvent('session_link_copied')
   analytics.saveAnalyticsPreference(true)
   window.location.pathname = '/s/private-session-id'
   await analytics.startProductAnalytics()
@@ -68,7 +70,7 @@ test('only sends allowed events with anonymous protocol fields and a fixed scree
     uuid: 'test-event',
     $set_once: { $initial_current_url: 'private' },
     $set: { email: 'private@example.com' },
-    event: 'session_created',
+    event: 'session_link_copied',
     properties: {
       token: 'phc_test', distinct_id: 'random-browser-id', $lib: 'web',
       $current_url: 'https://example.com/dashboard/secret?token=private',
@@ -79,10 +81,11 @@ test('only sends allowed events with anonymous protocol fields and a fixed scree
   })
   expect(filtered?.properties).toEqual({
     token: 'phc_test', distinct_id: 'random-browser-id', $lib: 'web',
-    screen: 'session_create', $geoip_disable: true,
+    screen: 'session_create', source: 'browser', $geoip_disable: true,
   })
   expect(filtered).not.toHaveProperty('$set_once')
   expect(filtered).not.toHaveProperty('$set')
+  expect(analytics.filterProductEvent({ uuid: 'test-event', event: 'session_created', properties: {} })).toBeNull()
   expect(analytics.filterProductEvent({ uuid: 'test-event', event: '$autocapture', properties: {} })).toBeNull()
   window.location.pathname = '/dashboard/private-session-id'
   expect(analytics.filterProductEvent({ uuid: 'test-event', event: 'session_detail_viewed', properties: {} })?.properties.screen)
@@ -93,15 +96,15 @@ test('stops new captures on withdrawal, public navigation and sign-out', async (
   const analytics = await import('./product-analytics')
   analytics.saveAnalyticsPreference(true)
   await analytics.startProductAnalytics()
-  analytics.captureProductEvent('session_created')
+  analytics.captureProductEvent('session_link_copied')
   expect(sdk.capture).toHaveBeenCalledOnce()
   window.location.pathname = '/'
-  analytics.captureProductEvent('session_updated')
-  expect(analytics.filterProductEvent({ uuid: 'test-event', event: 'session_created', properties: {} })).toBeNull()
+  analytics.captureProductEvent('session_link_copied')
+  expect(analytics.filterProductEvent({ uuid: 'test-event', event: 'session_link_copied', properties: {} })).toBeNull()
   window.location.pathname = '/dashboard'
   analytics.saveAnalyticsPreference(false)
   analytics.revokeProductAnalytics()
-  analytics.captureProductEvent('session_deleted')
+  analytics.captureProductEvent('session_link_copied')
   expect(sdk.capture).toHaveBeenCalledOnce()
   expect(sdk.opt_out_capturing).toHaveBeenCalledOnce()
   analytics.saveAnalyticsPreference(true)
@@ -144,4 +147,17 @@ test('unavailable browser storage fails closed', async () => {
   expect(analytics.saveAnalyticsPreference(true)).toBe(false)
   await analytics.startProductAnalytics()
   expect(sdkImported).not.toHaveBeenCalled()
+})
+
+test('links server operations to the browser identity only while dashboard analytics is active', async () => {
+  const analytics = await import('./product-analytics')
+  expect(analytics.serverAnalyticsContext()).toEqual({ enabled: true })
+  await analytics.startProductAnalytics()
+  expect(analytics.serverAnalyticsContext()).toEqual({
+    enabled: true, distinctId: sdk.get_distinct_id(), sessionId: sdk.get_session_id(),
+  })
+  window.location.pathname = '/s/a-session'
+  expect(analytics.serverAnalyticsContext()).toEqual({ enabled: true })
+  analytics.saveAnalyticsPreference(false)
+  expect(analytics.serverAnalyticsContext()).toEqual({ enabled: false })
 })

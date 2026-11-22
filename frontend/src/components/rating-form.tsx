@@ -3,6 +3,7 @@ import { useServerFn } from '@tanstack/react-start'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { submitRating } from '../server/public-sessions'
 import { Button } from './ui/button'
+import { serverAnalyticsContext } from '../analytics/product-analytics'
 
 type RatingState =
   | { kind: 'ready' }
@@ -28,7 +29,7 @@ export function RatingForm({ sessionId }: { sessionId: string }) {
     setState({ kind: 'sending' })
 
     try {
-      const result = await send({ data: { id: sessionId, rating: attempt.current } })
+      const result = await send({ data: { id: sessionId, rating: attempt.current, analytics: serverAnalyticsContext() } })
       if (result.ok) setState({ kind: 'saved' })
       else if (result.status === 404 || result.status === 409) {
         setState({ kind: 'unavailable', message: result.message })

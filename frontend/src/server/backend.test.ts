@@ -1,4 +1,4 @@
-import { actorHeader, sessionPageSchema, sessionSchema } from '@exitslide/contracts'
+import { actorHeader, analyticsEnabledHeader, analyticsDistinctIdHeader, analyticsSessionIdHeader, sessionPageSchema, sessionSchema } from '@exitslide/contracts'
 import { expect, test, vi } from 'vitest'
 import { requestBackend } from './backend'
 
@@ -31,4 +31,24 @@ test('distinguishes an empty dashboard from unavailable storage and invalid payl
   expect(await list()).toEqual({ ok: true, data: empty })
   expect(await list()).toEqual({ ok: false, status: 503, message: 'Storage is temporarily unavailable.' })
   expect(await list()).toMatchObject({ ok: false, status: 503 })
+})
+
+test('forwards attribution separately from business data and suppresses IDs for opt-outs', async () => {
+  const distinctId = crypto.randomUUID()
+  const sessionId = crypto.randomUUID()
+  const requests: Request[] = []
+  const backend = { fetch: async (request: Request) => {
+    requests.push(request)
+    return new Response(null, { status: 204 })
+  } }
+  for (const enabled of [true, false]) await requestBackend(backend, '/sessions/' + crypto.randomUUID(), { parse: () => null }, {
+    method: 'DELETE', owner: 'user_speaker', analytics: { enabled, distinctId, sessionId },
+  })
+  expect(requests[0].headers.get(analyticsEnabledHeader)).toBe('1')
+  expect(requests[0].headers.get(analyticsDistinctIdHeader)).toBe(distinctId)
+  expect(requests[0].headers.get(analyticsSessionIdHeader)).toBe(sessionId)
+  expect(requests[1].headers.get(analyticsEnabledHeader)).toBe('0')
+  expect(requests[1].headers.has(analyticsDistinctIdHeader)).toBe(false)
+  expect(requests[1].headers.has(analyticsSessionIdHeader)).toBe(false)
+  expect(requests.every(request => request.headers.get(actorHeader) === 'user_speaker')).toBe(true)
 })

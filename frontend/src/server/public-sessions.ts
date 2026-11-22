@@ -1,4 +1,4 @@
-import { publicSessionSchema, ratingInputSchema, sessionIdSchema, type RatingInput } from '@exitslide/contracts'
+import { analyticsContextSchema, publicSessionSchema, ratingInputSchema, sessionIdSchema, type RatingInput, type AnalyticsContext } from '@exitslide/contracts'
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
 import { requestBackend } from './backend'
@@ -9,10 +9,11 @@ export const loadPublicSession = createServerFn({ method: 'GET' })
   .handler(({ data, context }) => requestBackend(context.backend, '/public/sessions/' + data, publicSessionSchema))
 
 export const submitRating = createServerFn({ method: 'POST' })
-  .validator((value: { id: string; rating: RatingInput }) => ({
+  .validator((value: { id: string; rating: RatingInput; analytics?: AnalyticsContext }) => ({
     id: sessionIdSchema.parse(value.id),
     rating: ratingInputSchema.parse(value.rating),
+    analytics: analyticsContextSchema.optional().parse(value.analytics),
   }))
   .handler(({ data, context }) => sendRating(
-    context, data.id, getRequest().headers.get('CF-Connecting-IP') ?? 'unknown', data.rating,
+    context, data.id, getRequest().headers.get('CF-Connecting-IP') ?? 'unknown', data.rating, data.analytics,
   ))

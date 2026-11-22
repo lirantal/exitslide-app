@@ -1,4 +1,4 @@
-import { ratingSavedSchema, type RatingInput } from '@exitslide/contracts'
+import { ratingSavedSchema, type RatingInput, type AnalyticsContext } from '@exitslide/contracts'
 import { requestBackend, type Result, type WorkerContext } from './backend'
 
 export async function sendRating(
@@ -6,6 +6,7 @@ export async function sendRating(
   sessionId: string,
   clientIp: string,
   input: RatingInput,
+  analytics?: AnalyticsContext,
 ): Promise<Result<{ status: 'saved' }>> {
   try {
     const { success } = await context.ratingLimiter.limit({ key: sessionId + ':' + clientIp })
@@ -17,6 +18,6 @@ export async function sendRating(
   }
 
   return requestBackend(context.backend, '/public/sessions/' + sessionId + '/ratings', ratingSavedSchema, {
-    method: 'POST', body: input,
+    method: 'POST', body: input, analytics,
   })
 }

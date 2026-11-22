@@ -23,6 +23,10 @@ If an ID is set in both places, the workflow uses the secret. To create the depl
 
 The workflow inherits the three existing WorkOS runtime secrets on `exitslide-frontend` and checks that they exist before applying migrations. Keep runtime secret changes in Cloudflare. Check the first push to `main` through **Verify → Deploy production → Verify live deployment**. Use the [pilot checklist](pilot.md) for reruns and rollback.
 
+## Product analytics configuration
+
+Before deploying the server-side PostHog integration, add the existing public project ingestion token as the `POSTHOG_PROJECT_TOKEN` secret on `exitslide-backend`. The [analytics setup guide](analytics.md#posthog-and-cloudflare-setup) gives the PostHog and Cloudflare dashboard steps. No personal PostHog API key is required. Keep the server token and browser token in the same EU project.
+
 ## Manual Cloudflare deployment
 
 ExitSlide has one live deployment. The workspace pins Cloudflare's `cf` CLI. From the repo root, start the CLI login and complete device approval. Check that `whoami` shows the account that owns the ExitSlide resources. Production uses the account's `workers.dev` subdomain for the frontend.

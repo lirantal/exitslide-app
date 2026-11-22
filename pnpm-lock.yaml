@@ -41,6 +41,9 @@ importers:
       hono:
         specifier: 4.13.19
         version: 4.13.19
+      posthog-node:
+        specifier: 6.0.5
+        version: 6.0.5
     devDependencies:
       '@cloudflare/vite-plugin':
         specifier: 2.0.0-rc.2
@@ -2194,6 +2197,21 @@ packages:
       '@types/react':
         optional: true
       react:
+        optional: true
+
+  posthog-node@6.0.5:
+    resolution: {integrity: sha512-trvLy4y6I2SDU9DOJ6vVv3n2Gw8Jp1mbbaxSGGsrgO9ihF2l4Mz/AgVVdTSV9DPv7Y+VeQnfpE6I8ipJlAMtzg==}
+    engines: {node: ^20.20.0 || >=22.22.0}
+    peerDependencies:
+      '@opentelemetry/api': ^1.2.0
+      '@react-email/render': ^2.1.0
+      rxjs: ^7.0.0
+    peerDependenciesMeta:
+      '@opentelemetry/api':
+        optional: true
+      '@react-email/render':
+        optional: true
+      rxjs:
         optional: true
 
   preact@10.29.8:
@@ -4382,6 +4400,10 @@ snapshots:
       react: 19.3.1
     transitivePeerDependencies:
       - preact-render-to-string
+
+  posthog-node@6.0.5:
+    dependencies:
+      '@posthog/core': 1.69.2
 
   preact@10.29.8: {}
 

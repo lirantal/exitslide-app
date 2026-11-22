@@ -38,6 +38,8 @@ test('live WorkOS speakers can publish, view private feedback, retire, and sign 
   const attendee = await browser.newPage({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true })
   const pages = [owner, observer, attendee]
   for (const page of pages) {
+    // Production smoke exercises business flows without populating product analytics.
+    await page.addInitScript(() => localStorage.setItem('exitslide:product-analytics:v1', 'declined'))
     page.setDefaultTimeout(12_000)
     page.setDefaultNavigationTimeout(20_000)
   }
