@@ -6,6 +6,8 @@ See [Architecture and development workflow](docs/architecture.md) for the two-Wo
 
 [Product analytics](docs/analytics.md) documents the default-on PostHog EU integration, opt-out preference, collected events, and release verification.
 
+[Traffic analytics](docs/traffic-analytics.md) documents the cookieless Cloudflare Web Analytics integration on public pages.
+
 ## Local development
 
 Use Node 24.22 or newer in the Node 24 line and pnpm 11.25.0.

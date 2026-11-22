@@ -4,6 +4,7 @@ import { expect, test } from '@playwright/test'
 test.use({ userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36' })
 
 test('PostHog starts by default in the dashboard, sends sanitized actions, and respects opt-out', async ({ page, baseURL }) => {
+  await page.route('https://static.cloudflareinsights.com/**', route => route.abort())
   // Exercise the production bot filter with a normal-browser environment.
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'webdriver', { get: () => false })

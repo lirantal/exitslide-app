@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { sampleSessionId } from '../../preview/fixtures'
 import { Wordmark } from '../components/wordmark'
 import { buttonVariants } from '../components/ui/button'
+import { WebAnalytics } from '../components/web-analytics'
 
 export const Route = createFileRoute('/')({
   validateSearch: (search: Record<string, unknown>) =>
@@ -14,6 +15,7 @@ function Home() {
 
   return (
     <>
+      <WebAnalytics />
       <header className="app-bar">
         <div className="page-width app-bar-content">
           <Wordmark />

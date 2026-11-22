@@ -5,6 +5,7 @@ import { Button, buttonVariants } from '../components/ui/button'
 import { Wordmark } from '../components/wordmark'
 import { loadPublicSession } from '../server/public-sessions'
 import type { ReactNode } from 'react'
+import { WebAnalytics } from '../components/web-analytics'
 
 export const Route = createFileRoute('/s/$sessionId')({
   staleTime: 0,
@@ -72,6 +73,7 @@ function UnavailableSession() {
 function AttendeeScreen({ children }: { children: ReactNode }) {
   return (
     <>
+      <WebAnalytics />
       <header className="app-bar">
         <div className="app-bar-content mx-auto max-w-lg px-4 sm:px-5">
           <Wordmark />

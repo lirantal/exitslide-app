@@ -1,6 +1,6 @@
 # Product analytics
 
-ExitSlide uses PostHog EU for product analytics. The browser SDK runs only in the authenticated speaker dashboard; the private backend records successful Session mutations and saved ratings. Public pages, sign-in and auth callbacks do not initialize the browser SDK. Cloudflare visitor analytics is a separate future task.
+ExitSlide uses PostHog EU for product analytics. The browser SDK runs only in the authenticated speaker dashboard; the private backend records successful Session mutations and saved ratings. Public pages, sign-in and auth callbacks do not initialize the browser SDK. Cloudflare visitor analytics is configured separately; see [traffic analytics](traffic-analytics.md).
 
 ## Preference and data
 

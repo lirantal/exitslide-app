@@ -10,7 +10,7 @@ interface Env {
   WORKOS_COOKIE_PASSWORD?: string
 }
 
-const noStore = { 'Cache-Control': 'no-store' }
+const noStore = { 'Cache-Control': 'no-store', 'Referrer-Policy': 'strict-origin' }
 
 export default {
   async fetch(request: Request, env: Env) {
@@ -38,6 +38,7 @@ export default {
     const response = await handler.fetch(request, { context: { backend: env.BACKEND, ratingLimiter: env.RATING_RATE_LIMIT } })
     const headers = new Headers(response.headers)
     headers.set('Cache-Control', 'no-store')
+    headers.set('Referrer-Policy', 'strict-origin')
 
     return new Response(response.body, {
       headers,
