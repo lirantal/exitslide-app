@@ -5,7 +5,13 @@ test.use({ userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML
 
 test('PostHog stays off until dashboard consent, sends sanitized actions, and stops on withdrawal', async ({ page, baseURL }) => {
   // Exercise the production bot filter with a normal-browser environment.
-  await page.addInitScript(() => Object.defineProperty(navigator, 'webdriver', { get: () => false }))
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => false })
+    // Playwright's headless shell also advertises HeadlessChrome via client hints.
+    Object.defineProperty(navigator, 'userAgentData', { get: () => ({
+      brands: [{ brand: 'Chromium', version: '142' }], mobile: false, platform: 'Linux',
+    }) })
+  })
   const requests: string[] = []
   const captured: Array<{ event: string; properties: Record<string, unknown> }> = []
   await page.route('https://*.posthog.com/**', async route => {
