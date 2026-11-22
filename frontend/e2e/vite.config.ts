@@ -8,6 +8,9 @@ export default defineConfig(config => mergeConfig(frontendConfig(config), {
   define: {
     'import.meta.env.VITE_POSTHOG_PROJECT_TOKEN': JSON.stringify('phc_e2e_only'),
     'import.meta.env.VITE_POSTHOG_ENABLED': JSON.stringify('true'),
+    'import.meta.env.VITE_CLOUDFLARE_WEB_ANALYTICS_ENABLED': JSON.stringify('true'),
+    'import.meta.env.VITE_CLOUDFLARE_WEB_ANALYTICS_HOST': JSON.stringify('127.0.0.1'),
+    'import.meta.env.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN': JSON.stringify('00000000000000000000000000000000'),
   },
   resolve: {
     alias: {

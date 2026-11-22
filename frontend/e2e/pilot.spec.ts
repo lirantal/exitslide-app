@@ -5,6 +5,9 @@ test('speaker shares slides, receives one retried rating, edits and retires the 
   const owner = page.context()
   const attendee = await browser.newContext({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true })
   const secondSpeaker = await browser.newContext()
+  for (const context of [owner, attendee, secondSpeaker]) {
+    await context.route('https://static.cloudflareinsights.com/**', route => route.abort())
+  }
   await owner.addCookies([{ name: 'exitslide-test-user', value: 'user_first', url: origin }])
   await secondSpeaker.addCookies([{ name: 'exitslide-test-user', value: 'user_second', url: origin }])
   await attendee.route('https://example.com/**', route => route.fulfill({ body: 'Example deck' }))
