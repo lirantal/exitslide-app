@@ -2,6 +2,7 @@ import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
 import { SessionForm } from '../components/session-form'
 import { createSession } from '../server/sessions'
+import { captureProductEvent } from '../analytics/product-analytics'
 
 export const Route = createFileRoute('/dashboard/new')({ component: NewSession })
 
@@ -15,6 +16,7 @@ function NewSession() {
       <SessionForm label="Publish Session" onSave={async input => {
         const result = await create({ data: input })
         if (!result.ok) return result.message
+        captureProductEvent('session_created')
         await router.invalidate()
         await router.navigate({ to: '/dashboard/$sessionId', params: { sessionId: result.data.id }, search: {} })
       }} />

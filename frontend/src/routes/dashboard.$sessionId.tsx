@@ -5,6 +5,7 @@ import { useRef, useState } from 'react'
 import { SessionForm } from '../components/session-form'
 import { Button, buttonVariants } from '../components/ui/button'
 import { deleteSession, listRatings, loadSession, updateSession } from '../server/sessions'
+import { captureProductEvent } from '../analytics/product-analytics'
 
 export const Route = createFileRoute('/dashboard/$sessionId')({
   validateSearch: (search: Record<string, unknown>): { cursor?: string } => {
@@ -42,6 +43,7 @@ function SessionDetail() {
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(publicUrl)
+      captureProductEvent('session_link_copied')
       setCopyMessage('Link copied.')
     } catch {
       publicLink.current?.focus()
@@ -60,6 +62,7 @@ function SessionDetail() {
         setDeleteError(result.message)
         return
       }
+      captureProductEvent('session_deleted')
       await router.navigate({ to: '/dashboard', search: {} })
       await router.invalidate()
     } catch {
@@ -87,6 +90,7 @@ function SessionDetail() {
           <SessionForm key={session.id} initial={session} label="Save changes" onSave={async input => {
             const result = await update({ data: { ...input, id: session.id } })
             if (!result.ok) return result.message
+            captureProductEvent('session_updated')
             await router.invalidate()
           }} />
         </div>
