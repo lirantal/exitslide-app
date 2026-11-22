@@ -1,4 +1,7 @@
-import { actorHeader, apiErrorSchema } from '@exitslide/contracts'
+import {
+  actorHeader, apiErrorSchema, analyticsContextSchema, analyticsEnabledHeader,
+  analyticsDistinctIdHeader, analyticsSessionIdHeader, type AnalyticsContext,
+} from '@exitslide/contracts'
 
 export interface WorkerContext {
   backend: { fetch(request: Request): Promise<Response> }
@@ -9,6 +12,7 @@ type BackendOptions = {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'
   owner?: string
   body?: unknown
+  analytics?: AnalyticsContext
 }
 
 export type Result<T> =
@@ -19,11 +23,17 @@ export async function requestBackend<T>(
   backend: WorkerContext['backend'],
   path: string,
   schema: { parse(value: unknown): T },
-  { method = 'GET', owner, body }: BackendOptions = {},
+  { method = 'GET', owner, body, analytics }: BackendOptions = {},
 ): Promise<Result<T>> {
   const headers = new Headers()
   if (owner) headers.set(actorHeader, owner)
   if (body !== undefined) headers.set('Content-Type', 'application/json')
+  if (analytics) {
+    const attribution = analyticsContextSchema.parse(analytics)
+    headers.set(analyticsEnabledHeader, attribution.enabled ? '1' : '0')
+    if (attribution.enabled && attribution.distinctId) headers.set(analyticsDistinctIdHeader, attribution.distinctId)
+    if (attribution.enabled && attribution.sessionId) headers.set(analyticsSessionIdHeader, attribution.sessionId)
+  }
 
   try {
     const result = await backend.fetch(new Request('https://exitslide-backend' + path, {

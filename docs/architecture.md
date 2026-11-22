@@ -31,6 +31,10 @@ The dashboard submits sign-out as a document `POST` to `/sign-out`. The route ch
 
 TanStack Start's CSRF middleware protects server functions. Keep speaker identity and provider secrets on the frontend server. Auth responses use `Cache-Control: no-store`, and frontend log and trace retention are disabled because provider errors can include callback data.
 
+## Product analytics
+
+The private Hono backend records committed Session mutations and newly saved ratings using `posthog-node`. It extends delivery with the request execution context rather than blocking the response. Validated browser attribution is forwarded separately over the service binding and is never used for ownership. Browser capture covers dashboard navigation and successful link copying, using `posthog-js`. Saved opt-outs suppress both paths; rating retries do not duplicate events. The [analytics guide](analytics.md) documents event ownership, data minimization, token configuration, and best-effort delivery limits.
+
 ## Development workflow
 
 Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`, and `pnpm build` from the repo root. Vitest covers the D1-backed APIs and focused frontend regressions. Playwright runs both local Workers against a temporary D1 database and fixture speaker identities. See [pilot verification](pilot.md) for live checks and rollback.

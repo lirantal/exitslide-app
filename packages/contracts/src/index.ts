@@ -8,6 +8,21 @@ export const backendHealthSchema = z.strictObject({
 export const actorHeader = 'X-ExitSlide-Actor'
 export const sessionIdSchema = z.uuid()
 
+// Untrusted attribution only. These fields never authorize a business operation.
+export const analyticsContextSchema = z.strictObject({
+  enabled: z.boolean(),
+  distinctId: z.uuid().optional(),
+  sessionId: z.uuid().optional(),
+})
+export type AnalyticsContext = z.infer<typeof analyticsContextSchema>
+export const analyticsEnabledHeader = 'X-ExitSlide-Analytics-Enabled'
+export const analyticsDistinctIdHeader = 'X-ExitSlide-Analytics-Distinct-Id'
+export const analyticsSessionIdHeader = 'X-ExitSlide-Analytics-Session-Id'
+export const deleteSessionInputSchema = z.union([
+  sessionIdSchema.transform(id => ({ id, analytics: undefined as AnalyticsContext | undefined })),
+  z.strictObject({ id: sessionIdSchema, analytics: analyticsContextSchema.optional() }),
+])
+
 export const sessionInputSchema = z.strictObject({
   title: z.string().trim().min(1, 'Enter a title.').max(160, 'Use 160 characters or fewer.'),
   slideUrl: z.string().trim().max(2048).startsWith('https://').pipe(z.url({ protocol: /^https$/ })).refine((value) => {

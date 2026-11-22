@@ -50,7 +50,8 @@ export function ProductAnalytics() {
       <summary className="cursor-pointer">Privacy preferences</summary>
       <div className="mt-3 grid gap-2">
         <p id="product-analytics-description">
-          Product analytics is on by default to help us improve ExitSlide by sending dashboard actions and a random browser
+          Product analytics is on by default to help us improve ExitSlide by sending dashboard actions,
+          successful app operations, and a pseudonymous
           identifier to PostHog in the EU. We don’t send Session titles, slide links, form contents, or
           session recordings. Your choice and, when enabled, the identifier are stored in this browser.
           Turn off anytime to stop collection and remove the analytics identifier. Previously sent events remain.

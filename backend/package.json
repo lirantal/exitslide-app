@@ -10,7 +10,8 @@
   "dependencies": {
     "@exitslide/contracts": "workspace:*",
     "drizzle-orm": "0.45.4",
-    "hono": "4.13.19"
+    "hono": "4.13.19",
+    "posthog-node": "6.0.5"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "2.0.0-rc.2",

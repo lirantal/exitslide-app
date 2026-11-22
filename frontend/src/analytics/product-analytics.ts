@@ -1,11 +1,12 @@
 import type { CaptureResult, PostHog } from 'posthog-js'
+import { sessionIdSchema, type AnalyticsContext } from '@exitslide/contracts'
 
 // Keep the existing key and values so previously saved opt-outs remain effective.
 export const analyticsPreferenceKey = 'exitslide:product-analytics:v1'
 
 const events = [
   'dashboard_viewed', 'session_create_started', 'session_detail_viewed',
-  'session_created', 'session_updated', 'session_deleted', 'session_link_copied',
+  'session_link_copied',
 ] as const
 type ProductEvent = typeof events[number]
 
@@ -60,6 +61,7 @@ export function filterProductEvent(event: CaptureResult | null): CaptureResult |
     Object.entries(event.properties).filter(([key]) => allowed.includes(key)),
   )
   properties.screen = screen
+  properties.source = 'browser'
   properties.$geoip_disable = true
   return { uuid: event.uuid, event: event.event, timestamp: event.timestamp, properties }
 }
@@ -129,4 +131,14 @@ export function clearAnalyticsOnSignOut() {
 
 export function captureProductEvent(event: ProductEvent) {
   if (active && isProductAnalyticsEnabled() && dashboardScreen()) client?.capture(event)
+}
+
+export function serverAnalyticsContext(): AnalyticsContext {
+  const enabled = analyticsConfigured && isProductAnalyticsEnabled()
+  if (!enabled || !active || !dashboardScreen() || !client) return { enabled }
+  return {
+    enabled,
+    distinctId: sessionIdSchema.safeParse(client.get_distinct_id()).data,
+    sessionId: sessionIdSchema.safeParse(client.get_session_id()).data,
+  }
 }

@@ -112,6 +112,8 @@ jobs:
             '.name == "exitslide" and .uuid == $id' >/dev/null
           pnpm exec cf workers secrets list --worker exitslide-frontend | jq -e \
             '(["WORKOS_CLIENT_ID", "WORKOS_REDIRECT_URI", "WORKOS_COOKIE_PASSWORD"] - map(.name)) | length == 0' >/dev/null
+          pnpm exec cf workers secrets list --worker exitslide-backend | jq -e \
+            'map(.name) | index("POSTHOG_PROJECT_TOKEN") != null' >/dev/null
       - name: Check main has no newer deployable changes
         id: current
         run: |

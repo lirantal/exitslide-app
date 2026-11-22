@@ -1,4 +1,4 @@
-import { ratingPageSchema, sessionIdSchema, sessionInputSchema, sessionPageSchema, sessionSchema } from '@exitslide/contracts'
+import { analyticsContextSchema, deleteSessionInputSchema, ratingPageSchema, sessionIdSchema, sessionInputSchema, sessionPageSchema, sessionSchema } from '@exitslide/contracts'
 import { redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
@@ -41,22 +41,23 @@ export const listRatings = createServerFn({ method: 'GET' })
   ))
 
 export const createSession = createServerFn({ method: 'POST' })
-  .validator((value: unknown) => sessionInputSchema.parse(value))
+  .validator((value: unknown) => sessionInputSchema.extend({ analytics: analyticsContextSchema.optional() }).parse(value))
   .handler(async ({ data, context }) => requestBackend(context.backend, '/sessions', sessionSchema, {
-    method: 'POST', owner: await requireOwner(), body: data,
+    method: 'POST', owner: await requireOwner(), body: { title: data.title, slideUrl: data.slideUrl }, analytics: data.analytics,
   }))
 
 export const updateSession = createServerFn({ method: 'POST' })
-  .validator((value: { id: string; title: string; slideUrl: string }) => ({
+  .validator((value: { id: string; title: string; slideUrl: string; analytics?: unknown }) => ({
     id: sessionIdSchema.parse(value.id),
     input: sessionInputSchema.parse({ title: value.title, slideUrl: value.slideUrl }),
+    analytics: analyticsContextSchema.optional().parse(value.analytics),
   }))
   .handler(async ({ data, context }) => requestBackend(context.backend, sessionPath(data.id), sessionSchema, {
-    method: 'PATCH', owner: await requireOwner(), body: data.input,
+    method: 'PATCH', owner: await requireOwner(), body: data.input, analytics: data.analytics,
   }))
 
 export const deleteSession = createServerFn({ method: 'POST' })
-  .validator((value: unknown) => sessionIdSchema.parse(value))
-  .handler(async ({ data, context }) => requestBackend(context.backend, sessionPath(data), { parse: () => null }, {
-    method: 'DELETE', owner: await requireOwner(),
+  .validator((value: unknown) => deleteSessionInputSchema.parse(value))
+  .handler(async ({ data, context }) => requestBackend(context.backend, sessionPath(data.id), { parse: () => null }, {
+    method: 'DELETE', owner: await requireOwner(), analytics: data.analytics,
   }))

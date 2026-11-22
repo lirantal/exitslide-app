@@ -19,6 +19,7 @@ export function backendWorker(mode: string | undefined) {
     previewUrls: false,
     env: {
       DB: bindings.d1({ name: release ? 'exitslide' : 'exitslide-local', id: databaseId }),
+      ...(release ? { POSTHOG_PROJECT_TOKEN: bindings.secret() } : {}),
     },
   }
 }
