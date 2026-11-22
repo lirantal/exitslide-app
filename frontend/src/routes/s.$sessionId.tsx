@@ -40,10 +40,11 @@ function PublicSessionPage() {
   return (
     <AttendeeScreen>
       <section className="surface overflow-hidden">
-        <div className="slide-cover flex min-h-40 items-end px-5 py-7 sm:min-h-52 sm:p-8">
-          <h1 className="max-w-[20ch] text-[clamp(1.9rem,5vw,2.8rem)] leading-[1.08] font-bold tracking-tight [overflow-wrap:anywhere]">
+        <div className="slide-cover min-h-40 items-end px-5 py-7 sm:min-h-52 sm:p-8">
+          <h1 className="max-w-[20ch] text-[clamp(1.9rem,5vw,2.8rem)] leading-[1.08] font-bold tracking-tight text-balance [overflow-wrap:anywhere]">
             {result.data.title}
           </h1>
+          <span aria-hidden="true" className="slide-cover-art" />
         </div>
         <div className="p-4 sm:p-5">
           <a href={result.data.slideUrl} target="_blank" rel="noopener noreferrer"

@@ -69,28 +69,27 @@ input:not([type="radio"]):not([type="checkbox"]) {
   }
 
   .slide-cover {
-    @apply relative isolate overflow-hidden bg-slide-cover text-primary-foreground;
+    @apply grid grid-cols-[minmax(0,1fr)_min(18%,4.5rem)] gap-3 bg-slide-cover text-primary-foreground;
   }
 
-  .slide-cover::before,
-  .slide-cover::after {
+  .slide-cover-art {
+    @apply relative aspect-[4/3] self-center;
+  }
+
+  .slide-cover-art::before,
+  .slide-cover-art::after {
     content: "";
     position: absolute;
-    z-index: -1;
-    inline-size: 45%;
-    aspect-ratio: 16 / 9;
     border: 1px solid color-mix(in oklch, var(--color-accent) 25%, var(--color-slide-cover));
-    border-radius: 0.45rem;
+    border-radius: 0.28rem;
   }
 
-  .slide-cover::before {
-    inset-inline-end: -6%;
-    inset-block-end: 3%;
+  .slide-cover-art::before {
+    inset: 0 0 22% 16%;
   }
 
-  .slide-cover::after {
-    inset-inline-end: -1%;
-    inset-block-end: -11%;
+  .slide-cover-art::after {
+    inset: 22% 16% 0 0;
     background: color-mix(in oklch, var(--color-primary) 35%, var(--color-slide-cover));
   }
 }

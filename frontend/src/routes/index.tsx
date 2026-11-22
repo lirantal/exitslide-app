@@ -40,7 +40,8 @@ function Home() {
             </div>
             <div className="grid gap-3 p-3 sm:p-4">
               <div className="slide-cover rounded-xl px-4 py-5 text-xl font-semibold tracking-tight sm:px-5">
-                <span className="relative block max-w-[16ch]">Making the web work for everyone</span>
+                <span className="max-w-[16ch] self-center">Making the web work for everyone</span>
+                <span aria-hidden="true" className="slide-cover-art" />
               </div>
               <div className="rounded-lg bg-primary px-3 py-2 text-center text-sm font-medium text-primary-foreground">Get slides</div>
               <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-border pt-3 text-sm">
