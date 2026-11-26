@@ -1,8 +1,8 @@
 // Public Cloudflare Web Analytics site token; this is not an API credential.
 export const webAnalyticsToken = import.meta.env.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN
-  ?? '0b79fa3f4c1f40fcbb9a98fc69cfa76c'
+  ?? 'd6fa5eaedb3c4c619cf2dba17abdb3ca'
 export const webAnalyticsHost = import.meta.env.VITE_CLOUDFLARE_WEB_ANALYTICS_HOST
-  ?? 'exitslide-frontend.brain-labs.workers.dev'
+  ?? 'app.exitslide.top'
 export const webAnalyticsEnabled = import.meta.env.MODE !== 'pr-preview'
   && (import.meta.env.VITE_CLOUDFLARE_WEB_ANALYTICS_ENABLED === 'true'
     || (import.meta.env.MODE === 'release' && import.meta.env.VITE_CLOUDFLARE_WEB_ANALYTICS_ENABLED !== 'false'))

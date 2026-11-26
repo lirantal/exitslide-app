@@ -4,13 +4,13 @@ Cloudflare Web Analytics measures traffic and performance on ExitSlide's public 
 
 ## Registered site
 
-The `brain-labs` account has a manually installed Web Analytics site for `exitslide-frontend.brain-labs.workers.dev`:
+The `brain-labs` account has a manually installed Web Analytics site for `app.exitslide.top`.
 
-- Site ID: `8f51b37d164f4e07b8770779e7b19139`.
+- Site ID: `4371efa2377242249224114f95f9f595`.
 - Public beacon token: configured in `frontend/src/analytics/web-analytics.ts`. This is an ingestion token, not a Cloudflare API credential.
-- Automatic injection is off. A `workers.dev` hostname is not an orange-clouded zone owned by this account, so the app installs the official beacon itself.
+- Automatic injection is off. The app installs the official beacon on the public pages listed below.
 
-In the Cloudflare dashboard, select `brain-labs`, open **Web Analytics**, and select `exitslide-frontend.brain-labs.workers.dev`. Traffic can take a few minutes to appear after a real visitor loads a measured page. Basic Worker request, error and CPU metrics are also available under **Workers & Pages → exitslide-frontend → Metrics**; those include API requests and automated traffic and will differ from browser pageview counts.
+In the Cloudflare dashboard, select `brain-labs`, open **Web Analytics**, and select `app.exitslide.top`. Historical traffic from before the domain cutover is under `exitslide-frontend.brain-labs.workers.dev`. Traffic can take a few minutes to appear after a real visitor loads a measured page. Basic Worker request, error and CPU metrics are also available under **Workers & Pages → exitslide-frontend → Metrics**. Those include API requests and automated traffic and will differ from browser pageview counts.
 
 ## Collection boundaries
 
