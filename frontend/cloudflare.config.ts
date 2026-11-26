@@ -28,6 +28,7 @@ export default defineConfig(({ isPreview, mode }) => {
       compatibilityFlags: ['nodejs_compat'],
       workersDev: release,
       previewUrls: release,
+      domains: release ? ['app.exitslide.top'] : undefined,
       observability: {
         enabled: false,
         logs: { enabled: false, invocationLogs: false },

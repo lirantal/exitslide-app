@@ -1,8 +1,10 @@
 import { defineConfig } from '@playwright/test'
 
 const origin = new URL(process.env.EXITSLIDE_LIVE_URL || 'https://exitslide-frontend.brain-labs.workers.dev')
+const isExitSlideHost = origin.hostname === 'app.exitslide.top'
+  || /^exitslide-frontend\.[a-z0-9-]+\.workers\.dev$/.test(origin.hostname)
 if (origin.protocol !== 'https:' ||
-    !/^exitslide-frontend\.[a-z0-9-]+\.workers\.dev$/.test(origin.hostname) ||
+    !isExitSlideHost ||
     origin.href !== origin.origin + '/') {
   throw new Error('EXITSLIDE_LIVE_URL must be the HTTPS origin of the ExitSlide live Worker.')
 }
