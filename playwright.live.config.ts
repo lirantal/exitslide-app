@@ -1,6 +1,6 @@
 import { defineConfig } from '@playwright/test'
 
-const origin = new URL(process.env.EXITSLIDE_LIVE_URL || 'https://exitslide-frontend.brain-labs.workers.dev')
+const origin = new URL(process.env.EXITSLIDE_LIVE_URL || 'https://app.exitslide.top')
 const isExitSlideHost = origin.hostname === 'app.exitslide.top'
   || /^exitslide-frontend\.[a-z0-9-]+\.workers\.dev$/.test(origin.hostname)
 if (origin.protocol !== 'https:' ||
