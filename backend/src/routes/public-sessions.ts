@@ -1,8 +1,10 @@
-import { ratingInputSchema, sessionIdSchema } from '@exitslide/contracts'
+import { engagementHeader, ratingInputSchema, sessionIdSchema } from '@exitslide/contracts'
 import { drizzle } from 'drizzle-orm/d1'
 import { Hono } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
-import { getPublicSession, saveRating } from '../db/ratings'
+import { saveRating } from '../db/ratings'
+import { getPublicSession, getSlideDestination } from '../db/sessions'
+import { recordEngagement } from '../db/engagement'
 import type { DatabaseBindings } from './sessions'
 import { recordProductEvent } from '../analytics'
 
@@ -15,8 +17,20 @@ publicSessionRoutes.use('*', async (context, next) => {
 
 publicSessionRoutes.get('/:id', async (context) => {
   const id = sessionIdSchema.safeParse(context.req.param('id'))
-  const session = id.success && await getPublicSession(drizzle(context.env.DB), id.data)
-  return session ? context.json(session) : context.json({ message: 'Session unavailable.' }, 404)
+  if (!id.success) return context.json({ message: 'Session unavailable.' }, 404)
+  const session = await getPublicSession(drizzle(context.env.DB), id.data)
+  if (!session) return context.json({ message: 'Session unavailable.' }, 404)
+  await recordEngagement(context.env.DB, id.data, 'visit', context.req.header(engagementHeader))
+  return context.json(session)
+})
+
+publicSessionRoutes.get('/:id/slides', async (context) => {
+  const id = sessionIdSchema.safeParse(context.req.param('id'))
+  if (!id.success) return context.json({ message: 'Session unavailable.' }, 404)
+  const session = await getSlideDestination(drizzle(context.env.DB), id.data)
+  if (!session) return context.json({ message: 'Session unavailable.' }, 404)
+  await recordEngagement(context.env.DB, id.data, 'slide_click', context.req.header(engagementHeader))
+  return context.redirect(session.slideUrl, 302)
 })
 
 publicSessionRoutes.post('/:id/ratings', bodyLimit({

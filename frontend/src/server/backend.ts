@@ -1,11 +1,13 @@
 import {
   actorHeader, apiErrorSchema, analyticsContextSchema, analyticsEnabledHeader,
   analyticsDistinctIdHeader, analyticsSessionIdHeader, type AnalyticsContext,
+  engagementHeader,
 } from '@exitslide/contracts'
 
 export interface WorkerContext {
   backend: { fetch(request: Request): Promise<Response> }
   ratingLimiter: { limit(options: { key: string }): Promise<{ success: boolean }> }
+  publicSessionVisit?: { id: string; attribution: string }
 }
 
 type BackendOptions = {
@@ -13,6 +15,7 @@ type BackendOptions = {
   owner?: string
   body?: unknown
   analytics?: AnalyticsContext
+  engagement?: string
 }
 
 export type Result<T> =
@@ -23,10 +26,11 @@ export async function requestBackend<T>(
   backend: WorkerContext['backend'],
   path: string,
   schema: { parse(value: unknown): T },
-  { method = 'GET', owner, body, analytics }: BackendOptions = {},
+  { method = 'GET', owner, body, analytics, engagement }: BackendOptions = {},
 ): Promise<Result<T>> {
   const headers = new Headers()
   if (owner) headers.set(actorHeader, owner)
+  if (engagement) headers.set(engagementHeader, engagement)
   if (body !== undefined) headers.set('Content-Type', 'application/json')
   if (analytics) {
     const attribution = analyticsContextSchema.parse(analytics)

@@ -25,3 +25,14 @@ export const ratings = sqliteTable('ratings', {
   check('rating_score', sql`typeof(${table.score}) = 'integer' and ${table.score} between 1 and 5`),
   index('ratings_by_session').on(table.sessionId, table.createdAt, table.submissionId),
 ])
+
+export const engagementEvents = sqliteTable('engagement_events', {
+  id: text().primaryKey().notNull(),
+  sessionId: text('session_id').notNull().references(() => sessions.id, { onDelete: 'cascade' }),
+  type: text({ enum: ['visit', 'slide_click'] }).notNull(),
+  createdAt: text('created_at').notNull(),
+  country: text(),
+}, (table) => [
+  check('engagement_event_type', sql`${table.type} in ('visit', 'slide_click')`),
+  index('engagement_events_by_session').on(table.sessionId, table.createdAt),
+])

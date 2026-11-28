@@ -1,6 +1,7 @@
 import { backendHealthSchema } from '@exitslide/contracts'
 import type { WorkerContext } from './server/backend'
 import handler from '@tanstack/react-start/server-entry'
+import { publicSessionVisit, slideRedirect } from './server/engagement'
 
 interface Env {
   BACKEND: WorkerContext['backend']
@@ -28,6 +29,9 @@ export default {
       return Response.json({ status: 'unavailable' }, { status: 503, headers: noStore })
     }
 
+    const slides = await slideRedirect(request, env.BACKEND)
+    if (slides) return slides
+
     if (!env.WORKOS_CLIENT_ID || !env.WORKOS_REDIRECT_URI || !env.WORKOS_COOKIE_PASSWORD) {
       return new Response('Authentication is unavailable.', {
         status: 503,
@@ -35,7 +39,11 @@ export default {
       })
     }
 
-    const response = await handler.fetch(request, { context: { backend: env.BACKEND, ratingLimiter: env.RATING_RATE_LIMIT } })
+    const response = await handler.fetch(request, { context: {
+      backend: env.BACKEND,
+      ratingLimiter: env.RATING_RATE_LIMIT,
+      publicSessionVisit: publicSessionVisit(request),
+    } })
     const headers = new Headers(response.headers)
     headers.set('Cache-Control', 'no-store')
     headers.set('Referrer-Policy', 'strict-origin')

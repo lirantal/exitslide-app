@@ -1,13 +1,8 @@
 import type { RatingInput } from '@exitslide/contracts'
 import { and, desc, eq, lt, or } from 'drizzle-orm'
 import type { DrizzleD1Database } from 'drizzle-orm/d1'
-import { ratings, sessions } from './schema'
+import { ratings } from './schema'
 import { pageSize } from './sessions'
-
-export function getPublicSession(db: DrizzleD1Database, id: string) {
-  return db.select({ title: sessions.title, slideUrl: sessions.slideUrl })
-    .from(sessions).where(eq(sessions.id, id)).get()
-}
 
 export async function saveRating(db: D1Database, id: string, input: RatingInput) {
   const [insert, read] = await db.batch<{ score: number }>([

@@ -1,7 +1,8 @@
-import { actorHeader, sessionIdSchema, sessionInputSchema } from '@exitslide/contracts'
+import { actorHeader, engagementRangeSchema, sessionIdSchema, sessionInputSchema } from '@exitslide/contracts'
 import { drizzle } from 'drizzle-orm/d1'
 import { Hono } from 'hono'
 import { listRatings } from '../db/ratings'
+import { getEngagementReport } from '../db/engagement'
 import { createSession, getSession, listSessions, retireSession, updateSession } from '../db/sessions'
 import { recordProductEvent, type AnalyticsBindings } from '../analytics'
 
@@ -70,4 +71,16 @@ sessionRoutes.get('/:id/ratings', async (context) => {
 
   const page = await listRatings(db, id.data, cursor.data)
   return page ? context.json(page) : context.json({ message: 'Page is no longer available.' }, 422)
+})
+
+sessionRoutes.get('/:id/engagement', async (context) => {
+  context.header('Cache-Control', 'no-store')
+  const id = sessionIdSchema.safeParse(context.req.param('id'))
+  const db = drizzle(context.env.DB)
+  if (!id.success || !await getSession(db, context.get('owner'), id.data)) {
+    return context.json({ message: 'Session unavailable.' }, 404)
+  }
+  const range = engagementRangeSchema.safeParse(context.req.query())
+  if (!range.success) return context.json({ message: 'Choose a valid UTC date range.' }, 422)
+  return context.json(await getEngagementReport(db, id.data, range.data))
 })

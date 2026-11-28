@@ -12,6 +12,14 @@ const sessionFields = {
 
 export const pageSize = 20
 
+export function getPublicSession(db: DrizzleD1Database, id: string) {
+  return db.select({ title: sessions.title }).from(sessions).where(eq(sessions.id, id)).get()
+}
+
+export function getSlideDestination(db: DrizzleD1Database, id: string) {
+  return db.select({ slideUrl: sessions.slideUrl }).from(sessions).where(eq(sessions.id, id)).get()
+}
+
 export async function getSession(db: DrizzleD1Database, owner: string, id: string) {
   return db.select(sessionFields).from(sessions)
     .where(and(eq(sessions.ownerId, owner), eq(sessions.id, id))).get()

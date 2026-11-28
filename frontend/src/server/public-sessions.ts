@@ -6,7 +6,9 @@ import { sendRating } from './rating-delivery'
 
 export const loadPublicSession = createServerFn({ method: 'GET' })
   .validator((value: unknown) => sessionIdSchema.parse(value))
-  .handler(({ data, context }) => requestBackend(context.backend, '/public/sessions/' + data, publicSessionSchema))
+  .handler(({ data, context }) => requestBackend(context.backend, '/public/sessions/' + data, publicSessionSchema, {
+    engagement: context.publicSessionVisit?.id === data ? context.publicSessionVisit.attribution : undefined,
+  }))
 
 export const submitRating = createServerFn({ method: 'POST' })
   .validator((value: { id: string; rating: RatingInput; analytics?: AnalyticsContext }) => ({
