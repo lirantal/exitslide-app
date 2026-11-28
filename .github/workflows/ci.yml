@@ -90,10 +90,11 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Build both production Workers
+      - name: Build production Workers
         run: |
           pnpm --filter @exitslide/backend exec vite build --mode release
           pnpm --filter @exitslide/frontend exec vite build --mode release
+          pnpm --filter @exitslide/website exec vite build --mode release
       - name: Check production configuration
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -152,10 +153,28 @@ jobs:
         run: |
           pnpm --filter @exitslide/frontend exec cf deploy --prebuilt --no-provision --tag "$GITHUB_SHA"
           echo 'deployed=true' >> "$GITHUB_OUTPUT"
+      - name: Deploy landing page
+        if: steps.current.outputs.deploy == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: pnpm --filter @exitslide/website exec cf deploy --prebuilt --no-provision --tag "$GITHUB_SHA"
+      - name: Verify landing page domains
+        if: steps.current.outputs.deploy == 'true'
+        run: |
+          curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 5 --max-time 10 \
+            https://exitslide.top/ -o "$RUNNER_TEMP/exitslide-website.html"
+          grep -Fq 'https://app.exitslide.top/sign-up' "$RUNNER_TEMP/exitslide-website.html"
+          grep -Fq 'https://app.exitslide.top/sign-in' "$RUNNER_TEMP/exitslide-website.html"
+          redirect="$(curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 5 --max-time 10 \
+            --output /dev/null --write-out '%{http_code} %{redirect_url}' 'https://www.exitslide.top/?check=release')"
+          if [[ "$redirect" != '308 https://exitslide.top/?check=release' ]]; then
+            echo "Unexpected www response: $redirect" >&2
+            exit 1
+          fi
   live-smoke:
     name: Verify live deployment
     needs: deploy
-    if: needs.deploy.outputs.deployed == 'true'
+    if: ${{ !cancelled() && needs.deploy.outputs.deployed == 'true' }}
     uses: ./.github/workflows/live-smoke.yml
     secrets:
       EXITSLIDE_WORKOS_SMOKE_API_KEY: ${{ secrets.EXITSLIDE_WORKOS_SMOKE_API_KEY }}

@@ -1,6 +1,7 @@
 packages:
   - frontend
   - backend
+  - website
   - packages/*
 allowBuilds:
   core-js@3.51.0: false

@@ -1,0 +1,18 @@
+import { bindings, defineConfig } from 'cf/config'
+
+export default defineConfig(({ mode }) => ({
+  worker: {
+    name: 'exitslide-website',
+    entrypoint: 'src/worker.ts',
+    compatibilityDate: '2026-11-19',
+    workersDev: false,
+    previewUrls: false,
+    domains: mode === 'release' ? ['exitslide.top', 'www.exitslide.top'] : undefined,
+    assets: {
+      runWorkerFirst: true,
+    },
+    env: {
+      ASSETS: bindings.assets(),
+    },
+  },
+}))
