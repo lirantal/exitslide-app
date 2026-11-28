@@ -45,7 +45,19 @@ else
   pnpm exec cf builds workers edit "$tag" --body "$settings" "${patch_previews[@]}" >/dev/null
 fi
 
-pnpm exec cf builds workers get "$tag" |
-  jq '{previews_enabled, production_deploy:.production_settings.deploy_command,
+current=$(pnpm exec cf builds workers get "$tag")
+if [[ "$operation" == create ]] && jq -e '.previews_enabled == false' <<< "$current" >/dev/null; then
+  # A new connection can start in legacy mode even when previews_enabled was requested.
+  preview_deploy=$(jq -er '.previews_base_config.deploy_command' <<< "$settings")
+  pnpm exec cf builds workers migrate-to-previews "$tag" --force --deploy-command "$preview_deploy" >/dev/null
+  current=$(pnpm exec cf builds workers get "$tag")
+fi
+
+if ! jq -e '.previews_enabled' <<< "$current" >/dev/null; then
+  echo 'Native Previews are disabled for the website Worker.' >&2
+  exit 1
+fi
+
+jq '{previews_enabled, production_deploy:.production_settings.deploy_command,
     preview_build:.previews_base_config.build_command, preview_deploy:.previews_base_config.deploy_command,
-    preview_paths:.previews_base_config.path_includes}'
+    preview_paths:.previews_base_config.path_includes}' <<< "$current"
