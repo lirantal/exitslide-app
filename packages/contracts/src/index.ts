@@ -47,7 +47,28 @@ export const apiErrorSchema = z.strictObject({
 
 export type SessionInput = z.infer<typeof sessionInputSchema>
 
-export const publicSessionSchema = sessionInputSchema
+export const publicSessionSchema = sessionInputSchema.pick({ title: true })
+
+// Set by the frontend Worker for eligible public navigations.
+export const engagementHeader = 'X-ExitSlide-Engagement'
+export const engagementCountrySchema = z.string().regex(/^(?!XX|T1)[A-Z]{2}$/)
+export const engagementDateSchema = z.iso.date()
+export const engagementRangeSchema = z.strictObject({
+  from: engagementDateSchema.optional(),
+  to: engagementDateSchema.optional(),
+}).refine(({ from, to }) => !from || !to || from <= to)
+export type EngagementRange = z.infer<typeof engagementRangeSchema>
+
+const engagementCountsSchema = z.strictObject({
+  visits: z.number().int().nonnegative(),
+  slideClicks: z.number().int().nonnegative(),
+})
+export const engagementReportSchema = z.strictObject({
+  totals: engagementCountsSchema,
+  days: z.array(engagementCountsSchema.extend({ date: engagementDateSchema })),
+  countries: z.array(engagementCountsSchema.extend({ country: engagementCountrySchema })),
+})
+export type EngagementReport = z.infer<typeof engagementReportSchema>
 
 export const ratingInputSchema = z.strictObject({
   score: z.number().int().min(1).max(5),

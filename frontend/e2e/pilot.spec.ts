@@ -10,7 +10,6 @@ test('speaker shares slides, receives one retried rating, edits and retires the 
   }
   await owner.addCookies([{ name: 'exitslide-test-user', value: 'user_first', url: origin }])
   await secondSpeaker.addCookies([{ name: 'exitslide-test-user', value: 'user_second', url: origin }])
-  await attendee.route('https://example.com/**', route => route.fulfill({ body: 'Example deck' }))
 
   try {
     await page.goto('/dashboard')
@@ -36,23 +35,40 @@ test('speaker shares slides, receives one retried rating, edits and retires the 
     await expect(page.getByText('No feedback yet.')).toBeVisible()
     const url = await page.getByLabel('Public Session link').inputValue()
     expect(url).toMatch(/\/s\/[a-f0-9-]+$/)
+    const slidesPath = new URL(url).pathname + '/slides'
     const privateUrl = page.url()
 
     const outsider = await secondSpeaker.newPage()
     await outsider.goto(privateUrl)
     await expect(outsider.getByRole('alert')).toHaveText('Session unavailable.')
+    await expect(outsider.getByRole('heading', { name: 'Engagement' })).toHaveCount(0)
     await outsider.goto(url)
     await expect(outsider).toHaveTitle('Session slides and feedback | ExitSlide')
     await expect(outsider.getByRole('link', { name: /Get slides/ })).toBeVisible()
 
     const publicPage = await attendee.newPage()
-    await publicPage.goto(url)
+    const publicResponse = await publicPage.goto(url)
+    expect(publicResponse?.headers()['cache-control']).toBe('no-store')
+    expect(await publicResponse?.text()).not.toContain('https://example.com/slides')
+    await expect(publicPage.getByRole('link', { name: /Get slides/ })).toHaveAttribute('href', slidesPath)
     await expect(publicPage.getByRole('button', { name: 'Submit rating' })).toBeDisabled()
+    expect((await attendee.request.get(url, { headers: { 'Sec-Purpose': 'prefetch' } })).ok()).toBe(true)
+    const bot = await attendee.request.get(slidesPath, {
+      headers: { 'User-Agent': 'Googlebot' }, maxRedirects: 0,
+    })
+    expect(bot.status()).toBe(302)
+    expect(bot.headers()['cache-control']).toBe('no-store')
+    expect(bot.headers().location).toBe('https://example.com/slides')
+    expect((await attendee.request.head(slidesPath, { maxRedirects: 0 })).status()).toBe(302)
+    const redirectPromise = attendee.waitForEvent('response', {
+      predicate: response => response.url() === origin + slidesPath,
+    })
     const popupPromise = publicPage.waitForEvent('popup')
     await publicPage.getByRole('link', { name: /Get slides/ }).click()
+    const redirect = await redirectPromise
+    expect(redirect.status()).toBe(302)
+    expect(redirect.headers().location).toBe('https://example.com/slides')
     const popup = await popupPromise
-    await popup.waitForLoadState('domcontentloaded')
-    expect(popup.url()).toBe('https://example.com/slides')
     await popup.close()
     await publicPage.bringToFront()
 
@@ -81,6 +97,15 @@ test('speaker shares slides, receives one retried rating, edits and retires the 
 
     await page.reload()
     await expect(page.getByText('4 out of 5')).toHaveCount(1)
+    const engagement = page.getByRole('region', { name: 'Engagement' })
+    await expect(engagement.getByRole('definition')).toHaveText(['2', '1'])
+    await expect(engagement.getByRole('table', { name: 'Daily activity (UTC)' })).toBeVisible()
+    await engagement.getByLabel('Through (UTC)').fill('2000-01-01')
+    await engagement.getByRole('button', { name: 'Apply dates' }).click()
+    await expect(engagement.getByText('No activity in this date range.')).toBeVisible()
+    await expect(engagement.getByRole('definition')).toHaveText(['0', '0'])
+    await engagement.getByRole('link', { name: 'Clear dates' }).click()
+    await expect(engagement.getByRole('definition')).toHaveText(['2', '1'])
     await expect(publicPage.getByText('4 out of 5')).toHaveCount(0)
     await page.getByText('Edit Session', { exact: true }).click()
     await page.getByLabel('Session title').fill('Updated Session')
@@ -91,7 +116,10 @@ test('speaker shares slides, receives one retried rating, edits and retires the 
     await expect(page.getByText('4 out of 5')).toHaveCount(1)
     await publicPage.reload()
     await expect(publicPage.getByRole('heading', { name: 'Updated Session' })).toBeVisible()
-    await expect(publicPage.getByRole('link', { name: /Get slides/ })).toHaveAttribute('href', 'https://example.com/updated')
+    await expect(publicPage.getByRole('link', { name: /Get slides/ })).toHaveAttribute('href', slidesPath)
+    const updated = await attendee.request.get(slidesPath, { maxRedirects: 0 })
+    expect(updated.status()).toBe(302)
+    expect(updated.headers().location).toBe('https://example.com/updated')
 
     page.once('dialog', dialog => dialog.dismiss())
     await page.getByRole('button', { name: 'Delete Session' }).click()
@@ -107,6 +135,7 @@ test('speaker shares slides, receives one retried rating, edits and retires the 
     await expect(publicPage.getByRole('alert')).toHaveText('Session unavailable.')
     const retired = await publicPage.reload()
     expect(retired?.status()).toBe(404)
+    expect((await attendee.request.get(slidesPath, { maxRedirects: 0 })).status()).toBe(404)
     await expect(publicPage.getByRole('heading', { name: 'This Session is unavailable' })).toBeVisible()
     await page.getByRole('button', { name: 'Sign out' }).click()
     await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toBeVisible()

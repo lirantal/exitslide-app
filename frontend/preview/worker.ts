@@ -1,5 +1,6 @@
 import handler from '@tanstack/react-start/server-entry'
 import { createFixtures, dataCookie, isSpeaker, previewCookie, speakerCookie } from './fixtures'
+import { publicSessionVisit, slideRedirect } from '../src/server/engagement'
 
 const responseHeaders = {
   'Cache-Control': 'no-store',
@@ -36,9 +37,10 @@ export default {
     }
 
     const fixtures = createFixtures(request)
-    const response = await handler.fetch(request, { context: {
+    const response = await slideRedirect(request, fixtures) ?? await handler.fetch(request, { context: {
       backend: fixtures,
       ratingLimiter: { limit: async () => ({ success: true }) },
+      publicSessionVisit: publicSessionVisit(request),
     } })
     const headers = new Headers(response.headers)
     for (const [name, value] of Object.entries(responseHeaders)) headers.set(name, value)

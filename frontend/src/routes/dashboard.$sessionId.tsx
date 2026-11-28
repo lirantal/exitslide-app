@@ -1,33 +1,40 @@
-import { sessionIdSchema } from '@exitslide/contracts'
+import { engagementDateSchema, engagementRangeSchema, sessionIdSchema, type EngagementRange, type EngagementReport } from '@exitslide/contracts'
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
 import { useRef, useState } from 'react'
 import { SessionForm } from '../components/session-form'
 import { Button, buttonVariants } from '../components/ui/button'
-import { deleteSession, listRatings, loadSession, updateSession } from '../server/sessions'
+import { deleteSession, listRatings, loadEngagement, loadSession, updateSession } from '../server/sessions'
+import { EngagementReportPanel } from '../components/engagement-report'
+import type { Result } from '../server/backend'
 import { captureProductEvent, serverAnalyticsContext } from '../analytics/product-analytics'
 
 export const Route = createFileRoute('/dashboard/$sessionId')({
   head: () => ({ meta: [{ title: 'Session details | ExitSlide' }] }),
-  validateSearch: (search: Record<string, unknown>): { cursor?: string } => {
-    const cursor = sessionIdSchema.safeParse(search.cursor).data
-    return cursor ? { cursor } : {}
-  },
-  loaderDeps: ({ search }) => ({ cursor: search.cursor }),
+  validateSearch: (search: Record<string, unknown>): EngagementRange & { cursor?: string } => ({
+    cursor: sessionIdSchema.safeParse(search.cursor).data,
+    from: engagementDateSchema.safeParse(search.from).data,
+    to: engagementDateSchema.safeParse(search.to).data,
+  }),
+  loaderDeps: ({ search }) => search,
   loader: async ({ params, deps }) => {
     const id = sessionIdSchema.safeParse(params.sessionId)
     if (!id.success) return null
-    const [details, feedback] = await Promise.all([
+    const range = engagementRangeSchema.safeParse({ from: deps.from, to: deps.to })
+    const [details, feedback, engagement] = await Promise.all([
       loadSession({ data: id.data }), listRatings({ data: { id: id.data, cursor: deps.cursor } }),
+      range.success
+        ? loadEngagement({ data: { id: id.data, range: range.data } })
+        : { ok: false, status: 422, message: 'Choose an end date on or after the start date.' } satisfies Result<EngagementReport>,
     ])
-    return { details, feedback }
+    return { details, feedback, engagement }
   },
   component: SessionDetail,
 })
 
 function SessionDetail() {
   const data = Route.useLoaderData()
-  const { cursor } = Route.useSearch()
+  const { cursor, from, to } = Route.useSearch()
   const router = useRouter()
   const update = useServerFn(updateSession)
   const retire = useServerFn(deleteSession)
@@ -54,7 +61,7 @@ function SessionDetail() {
   }
 
   async function deleteLink() {
-    if (deleting || !window.confirm('Delete this Session? Its public link will stop working and its ratings will be removed.')) return
+    if (deleting || !window.confirm('Delete this Session? Its public link will stop working and its ratings and engagement data will be removed.')) return
     setDeleting(true)
     setDeleteError('')
     try {
@@ -116,16 +123,17 @@ function SessionDetail() {
             )}
           {(cursor || (feedback.ok && feedback.data.nextCursor)) && (
             <nav className="flex flex-wrap gap-3" aria-label="Feedback pages">
-              {cursor && <Link to="/dashboard/$sessionId" params={{ sessionId: session.id }} search={{}}
+              {cursor && <Link to="/dashboard/$sessionId" params={{ sessionId: session.id }} search={{ from, to }}
                 className={buttonVariants({ variant: 'outline' })}>Newest ratings</Link>}
               {feedback.ok && feedback.data.nextCursor && (
-                <Link to="/dashboard/$sessionId" params={{ sessionId: session.id }} search={{ cursor: feedback.data.nextCursor }}
+                <Link to="/dashboard/$sessionId" params={{ sessionId: session.id }} search={{ from, to, cursor: feedback.data.nextCursor }}
                   className={buttonVariants({ variant: 'outline' })}>Older ratings</Link>
               )}
             </nav>
           )}
         </section>
       </div>
+      <EngagementReportPanel report={data.engagement} range={{ from, to }} path={'/dashboard/' + session.id} cursor={cursor} />
       <details className="surface max-w-2xl p-4 sm:px-6">
         <summary className="cursor-pointer rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">Edit Session</summary>
         <div className="mt-4">

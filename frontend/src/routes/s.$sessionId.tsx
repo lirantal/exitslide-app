@@ -49,7 +49,7 @@ function PublicSessionPage() {
           <span aria-hidden="true" className="slide-cover-art" />
         </div>
         <div className="p-4 sm:p-5">
-          <a href={result.data.slideUrl} target="_blank" rel="noopener noreferrer"
+          <a href={'/s/' + sessionId + '/slides'} target="_blank" rel="noopener noreferrer"
             aria-label="Get slides (opens in a new tab)"
             className={buttonVariants({ className: 'min-h-12 w-full' })}>Get slides</a>
         </div>

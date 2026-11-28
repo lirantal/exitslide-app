@@ -22,12 +22,12 @@ const privateRatings = (id: string) => '/sessions/' + id + '/ratings'
 const submit = (id: string, score: number, submissionId = crypto.randomUUID()) =>
   fetchRoute(publicPath(id) + '/ratings', 'POST', { score, submissionId })
 
-test('public lookup shows only the current title and slide URL', async () => {
+test('public lookup shows only the current title', async () => {
   const id = await create()
   await submit(id, 3)
   const response = await fetchRoute(publicPath(id))
   expect(response.headers.get('Cache-Control')).toBe('no-store')
-  expect(await response.json()).toEqual({ title: 'Practical Feedback', slideUrl: slides })
+  expect(await response.json()).toEqual({ title: 'Practical Feedback' })
   expect((await fetchRoute(publicPath(crypto.randomUUID()))).status).toBe(404)
   expect((await fetchRoute(privateRatings(id), 'GET', undefined, 'user_other')).status).toBe(404)
 })

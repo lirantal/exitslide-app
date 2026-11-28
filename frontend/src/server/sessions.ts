@@ -1,4 +1,4 @@
-import { analyticsContextSchema, deleteSessionInputSchema, ratingPageSchema, sessionIdSchema, sessionInputSchema, sessionPageSchema, sessionSchema } from '@exitslide/contracts'
+import { analyticsContextSchema, deleteSessionInputSchema, engagementRangeSchema, engagementReportSchema, ratingPageSchema, sessionIdSchema, sessionInputSchema, sessionPageSchema, sessionSchema, type EngagementRange } from '@exitslide/contracts'
 import { redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
@@ -39,6 +39,21 @@ export const listRatings = createServerFn({ method: 'GET' })
     context.backend, withCursor(sessionPath(data.id) + '/ratings', data.cursor), ratingPageSchema,
     { owner: await requireOwner() },
   ))
+
+export const loadEngagement = createServerFn({ method: 'GET' })
+  .validator((value: { id: string; range: EngagementRange }) => ({
+    id: sessionIdSchema.parse(value.id),
+    range: engagementRangeSchema.parse(value.range),
+  }))
+  .handler(async ({ data, context }) => {
+    const query = new URLSearchParams()
+    if (data.range.from) query.set('from', data.range.from)
+    if (data.range.to) query.set('to', data.range.to)
+    return requestBackend(
+      context.backend, sessionPath(data.id) + '/engagement' + (query.size ? '?' + query : ''),
+      engagementReportSchema, { owner: await requireOwner() },
+    )
+  })
 
 export const createSession = createServerFn({ method: 'POST' })
   .validator((value: unknown) => sessionInputSchema.extend({ analytics: analyticsContextSchema.optional() }).parse(value))

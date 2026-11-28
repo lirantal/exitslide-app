@@ -69,12 +69,16 @@ test('live WorkOS speakers can publish, view private feedback, retire, and sign 
     const publicPage = new URL(publicUrl)
     expect(publicPage.origin).toBe(origin)
     expect(publicPage.pathname).toMatch(/^\/s\/[0-9a-f-]+$/)
+    const slidesPath = publicPage.pathname + '/slides'
 
     step = 'open slides and submit anonymous feedback'
     await attachLiveNetwork(attendee, origin)
     await attendee.goto(publicUrl)
-    await expect(attendee.getByRole('link', { name: /Get slides/ })).toHaveAttribute('href', 'https://example.com/slides')
+    await expect(attendee.getByRole('link', { name: /Get slides/ })).toHaveAttribute('href', slidesPath)
     await expect(attendee.getByRole('button', { name: 'Submit rating' })).toBeDisabled()
+    const firstSlides = await attendee.request.get(origin + slidesPath, { maxRedirects: 0 })
+    expect(firstSlides.status()).toBe(302)
+    expect(firstSlides.headers().location).toBe('https://example.com/slides')
     const fourStars = attendee.getByRole('radio', { name: '4 stars' })
     await expect(fourStars).toBeEnabled()
     await fourStars.press('Space')
@@ -84,8 +88,10 @@ test('live WorkOS speakers can publish, view private feedback, retire, and sign 
     step = 'enforce private feedback across WorkOS speakers'
     await owner.reload()
     await expect(owner.getByText('4 out of 5')).toHaveCount(1)
+    await expect(owner.getByRole('region', { name: 'Engagement' }).getByRole('definition')).toHaveText(['1', '1'])
     await observer.goto(privateUrl)
     await expect(observer.getByRole('alert')).toHaveText('Session unavailable.')
+    await expect(observer.getByRole('heading', { name: 'Engagement' })).toHaveCount(0)
     await observer.goto(publicUrl)
     await expect(observer.getByRole('link', { name: /Get slides/ })).toBeVisible()
 
@@ -97,7 +103,10 @@ test('live WorkOS speakers can publish, view private feedback, retire, and sign 
     await expect(owner.getByLabel('Public Session link')).toHaveValue(publicUrl)
     await expect(owner.getByText('4 out of 5')).toHaveCount(1)
     await attendee.reload()
-    await expect(attendee.getByRole('link', { name: /Get slides/ })).toHaveAttribute('href', 'https://example.com/updated')
+    await expect(attendee.getByRole('link', { name: /Get slides/ })).toHaveAttribute('href', slidesPath)
+    const updatedSlides = await attendee.request.get(origin + slidesPath, { maxRedirects: 0 })
+    expect(updatedSlides.status()).toBe(302)
+    expect(updatedSlides.headers().location).toBe('https://example.com/updated')
 
     step = 'retire the link and reject feedback from a stale page'
     owner.once('dialog', dialog => dialog.accept())

@@ -1,6 +1,6 @@
 import {
-  actorHeader, ratingInputSchema, ratingPageSchema, sessionInputSchema, sessionSchema,
-  type RatingPage, type Session,
+  actorHeader, engagementHeader, engagementRangeSchema, engagementReportSchema, ratingInputSchema, ratingPageSchema,
+  sessionInputSchema, sessionSchema, type EngagementReport, type RatingPage, type Session,
 } from '@exitslide/contracts'
 
 export const sampleSessionId = '10000000-0000-4000-8000-000000000001'
@@ -11,6 +11,7 @@ type FixtureSession = {
   owner: string
   session: Session
   ratings: RatingPage['items']
+  days: EngagementReport['days']
 }
 
 const sampleDate = '2026-11-21T10:00:00.000Z'
@@ -25,11 +26,13 @@ function sampleSessions(): FixtureSession[] {
       owner: 'user_first',
       session: { id: sampleSessionId, title: 'Making the web work for everyone', slideUrl: 'https://example.com/slides', createdAt: sampleDate },
       ratings: [{ submissionId: '20000000-0000-4000-8000-000000000001', score: 5, createdAt: sampleDate }],
+      days: [{ date: sampleDate.slice(0, 10), visits: 12, slideClicks: 7 }],
     },
     {
       owner: 'user_second',
       session: { id: '10000000-0000-4000-8000-000000000002', title: 'Designing better feedback loops', slideUrl: 'https://example.com/feedback', createdAt: sampleDate },
       ratings: [],
+      days: [],
     },
   ]
 }
@@ -53,6 +56,7 @@ function readSessions(request: Request): FixtureSession[] {
         owner: row.owner,
         session: sessionSchema.parse(row.session),
         ratings: ratingPageSchema.shape.items.parse(row.ratings),
+        days: engagementReportSchema.shape.days.parse(row.days ?? []),
       }
     })
   } catch {
@@ -78,13 +82,28 @@ export function createFixtures(request: Request) {
   return {
     get cookie() { return cookie },
     async fetch(request: Request) {
-      const [, prefix, collection, publicId, action] = new URL(request.url).pathname.split('/')
+      const url = new URL(request.url)
+      const [, prefix, collection, publicId, action] = url.pathname.split('/')
       const method = request.method
       if (prefix === 'public' && collection === 'sessions') {
         const row = sessions.find(row => row.session.id === publicId)
         if (!row) return unavailable()
-        if (method === 'GET' && !action) {
-          return Response.json(sessionInputSchema.parse({ title: row.session.title, slideUrl: row.session.slideUrl }))
+        if (method === 'GET' && (!action || action === 'slides')) {
+          const response = action === 'slides'
+            ? new Response(null, { status: 302, headers: { Location: row.session.slideUrl } })
+            : Response.json({ title: row.session.title })
+          if (request.headers.has(engagementHeader)) {
+            const date = new Date().toISOString().slice(0, 10)
+            let day = row.days.find(day => day.date === date)
+            if (!day) {
+              day = { date, visits: 0, slideClicks: 0 }
+              row.days.unshift(day)
+            }
+            if (action === 'slides') day.slideClicks++
+            else day.visits++
+            save(response)
+          }
+          return response
         }
         if (method !== 'POST' || action !== 'ratings') return unavailable()
 
@@ -107,13 +126,24 @@ export function createFixtures(request: Request) {
       if (!collection && method === 'POST') {
         const input = sessionInputSchema.parse(await request.json())
         const session = { ...input, id: crypto.randomUUID(), createdAt: new Date().toISOString() }
-        sessions.unshift({ owner, session, ratings: [] })
+        sessions.unshift({ owner, session, ratings: [], days: [] })
         return save(Response.json(session, { status: 201 }))
       }
       const row = ownedSessions.find(row => row.session.id === collection)
       if (!row) return unavailable()
       if (publicId === 'ratings' && method === 'GET') {
         return Response.json({ items: row.ratings, nextCursor: null })
+      }
+      if (publicId === 'engagement' && method === 'GET') {
+        const range = engagementRangeSchema.safeParse(Object.fromEntries(url.searchParams))
+        if (!range.success) return Response.json({ message: 'Choose a valid UTC date range.' }, { status: 422 })
+        const { from, to } = range.data
+        const days = row.days.filter(({ date }) => (!from || from <= date) && (!to || date <= to))
+        const totals = days.reduce((sum, day) => ({
+          visits: sum.visits + day.visits,
+          slideClicks: sum.slideClicks + day.slideClicks,
+        }), { visits: 0, slideClicks: 0 })
+        return Response.json({ totals, days, countries: [] })
       }
       if (method === 'GET') return Response.json(row.session)
       if (method === 'PATCH') {
