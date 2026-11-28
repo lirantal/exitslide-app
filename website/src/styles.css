@@ -322,6 +322,11 @@ h3 { font-size: 1.25rem; letter-spacing: -.035em; }
 }
 
 @media (max-width: 40rem) {
+  .showcase-art { padding-bottom: 0; }
+  .attendee {
+    position: relative;
+    margin: -.65rem 0 0 auto;
+  }
   .steps { grid-template-columns: 1fr; }
   .closing-inner { align-items: flex-start; flex-direction: column; }
 }
@@ -330,7 +335,6 @@ h3 { font-size: 1.25rem; letter-spacing: -.035em; }
   .container { width: calc(100% - 2rem); }
   .nav-section, .hero-break { display: none; }
   .hero { padding-block: 3rem; }
-  .showcase-art { padding-bottom: 5.25rem; }
   .slide { width: 100%; }
   .attendee { width: min(100%, 13rem); }
 }
