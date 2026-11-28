@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => ({
     entrypoint: 'src/worker.ts',
     compatibilityDate: '2026-11-19',
     workersDev: false,
-    previewUrls: false,
+    previewUrls: mode === 'release' || mode === 'preview-bootstrap',
     domains: mode === 'release' ? ['exitslide.top', 'www.exitslide.top'] : undefined,
     assets: {
       runWorkerFirst: true,

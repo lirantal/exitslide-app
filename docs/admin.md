@@ -60,6 +60,20 @@ pnpm --filter @exitslide/website run deploy --no-provision
 
 After release, confirm that both Custom Domains appear on `exitslide-website`, DNS resolves, and HTTPS serves the site or redirect as expected. If the deploy step reports a zone-permission issue, check that the token can resolve the `exitslide.top` zone and manage its Worker Custom Domains. For a DNS or TLS failure, check zone activation, conflicting records and certificate status before rerunning the production workflow.
 
+### Landing page PR previews
+
+Cloudflare Workers Builds connects `exitslide-website` to the existing GitHub repository and uses the [website preview settings](../ops/cloudflare/website-preview-builds.json). A push to a matching branch creates or updates its `workers.dev` Preview. Open the **Workers Builds: exitslide-website** check on the PR to find the build and Preview URL. The site builds from the workspace root, and its account links go to the production app.
+
+Use an authenticated `cf` profile for the `brain-labs` account with access to Workers Builds. If the website Worker does not yet exist, create it in bootstrap mode before connecting it. This mode enables Preview URLs and omits the production domains.
+
+```sh
+pnpm --filter @exitslide/website build --mode preview-bootstrap
+pnpm --filter @exitslide/website exec cf deploy --prebuilt --no-provision
+bash ops/cloudflare/configure-website-preview-builds.sh create
+```
+
+If the Worker already exists, skip the bootstrap build and deploy. The setup script reuses the connected frontend's GitHub repository and build token. Run it without `create` to apply subsequent settings updates. GitHub Actions continues to deploy the production website and attach the apex and `www` domains.
+
 ## WorkOS and frontend deployment
 
 In WorkOS, open **Applications** in the ExitSlide AuthKit environment and select the ExitSlide application. Keep the existing client ID when deploying an existing installation. D1 associates Sessions with WorkOS user IDs. Enable hosted sign-up and configure these URLs in **Redirects**, substituting the production origin if it differs.
