@@ -4,7 +4,7 @@
 
 A push to `main` runs Verify on that commit unless every changed file is under `docs/`, `.agents/`, or `.codex/`, or is the root `README.md`. Those documentation and agent-configuration changes skip the push workflow and production deployment. Any other changed path, including application code, dependencies, migrations, or GitHub Actions workflows, triggers the normal release, even when mixed with ignored files. PR labels do not control production releases.
 
-Once Verify passes, **Deploy production** builds both Workers, checks the Cloudflare configuration, and applies D1 migrations before deploying the private backend and public frontend. The same run checks `/healthz` and runs Live smoke after deploying. Pull requests run Verify. The frontend's Cloudflare SCM integration is configured for branch previews. Its production deploy command is a no-op, so GitHub Actions controls production release order.
+Once Verify passes, **Deploy production** builds the Workers, checks the Cloudflare configuration, and applies D1 migrations. It deploys the private backend, the public frontend, and the landing page in that order. The same run checks both landing-page domains and runs Live smoke after the frontend deploys. Pull requests run Verify. The frontend's Cloudflare SCM integration is configured for branch previews. Its production deploy command is a no-op, so GitHub Actions controls production release order.
 
 If a newer commit on `main` changes deployable files, the older run skips deployment. If only ignored files differ, the older run can still deploy its verified commit, so a documentation merge does not strand a pending application release.
 
@@ -29,7 +29,7 @@ Before deploying the server-side PostHog integration, add the existing public pr
 
 ## Manual Cloudflare deployment
 
-ExitSlide has one live deployment. The workspace pins Cloudflare's `cf` CLI. From the repo root, start the CLI login and complete device approval. Check that `whoami` shows the account that owns the ExitSlide resources. Production uses the account's `workers.dev` subdomain for the frontend.
+The workspace pins Cloudflare's `cf` CLI. From the repo root, start the CLI login and complete device approval. Check that `whoami` shows the account that owns the ExitSlide resources. The production frontend uses `app.exitslide.top`.
 
 ```sh
 pnpm exec cf auth login
@@ -45,6 +45,34 @@ pnpm --filter @exitslide/backend run deploy --no-provision
 ```
 
 The frontend binds to `exitslide-backend`. The backend binds the production D1 database as `DB` and keeps its public and preview URLs disabled. The frontend disables invocation logs and traces to keep OAuth callback data out of retained logs.
+
+## Landing page domains
+
+The `exitslide-website` Worker serves `https://exitslide.top` and redirects `https://www.exitslide.top` to the apex with HTTP 308, preserving the path and query string. The release config declares both exact hostnames as [Cloudflare Worker Custom Domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/). Cloudflare creates and manages their DNS records and TLS certificates when it attaches them. The app hostname is attached separately to `exitslide-frontend`.
+
+Before the first release, confirm that the `exitslide.top` zone is active in `brain-labs`. In **DNS → Records** and **Workers & Pages → Domains & Routes**, check both website hostnames for existing records or mappings. If a conflicting record or mapping serves something live, confirm its owner and plan the cutover before replacing it. Leave the `app` hostname binding and unrelated DNS records in place.
+
+For a manual landing-page release with an authenticated Cloudflare session, run:
+
+```sh
+pnpm --filter @exitslide/website run deploy --no-provision
+```
+
+After release, confirm that both Custom Domains appear on `exitslide-website`, DNS resolves, and HTTPS serves the site or redirect as expected. If the deploy step reports a zone-permission issue, check that the token can resolve the `exitslide.top` zone and manage its Worker Custom Domains. For a DNS or TLS failure, check zone activation, conflicting records and certificate status before rerunning the production workflow.
+
+### Landing page PR previews
+
+Cloudflare Workers Builds connects `exitslide-website` to the existing GitHub repository and uses the [website preview settings](../ops/cloudflare/website-preview-builds.json). A push to a matching branch creates or updates its `workers.dev` Preview. Open the **Workers Builds: exitslide-website** check on the PR to find the build and Preview URL. The site builds from the workspace root, and its account links go to the production app.
+
+Use an authenticated `cf` profile for the `brain-labs` account with access to Workers Builds. If the website Worker does not yet exist, create it in bootstrap mode before connecting it. This mode enables Preview URLs and omits the production domains.
+
+```sh
+pnpm --filter @exitslide/website build --mode preview-bootstrap
+pnpm --filter @exitslide/website exec cf deploy --prebuilt --no-provision
+bash ops/cloudflare/configure-website-preview-builds.sh create
+```
+
+If the Worker already exists, skip the bootstrap build and deploy. The setup script reuses the connected frontend's GitHub repository and build token. Run it without `create` to apply subsequent settings updates. GitHub Actions continues to deploy the production website and attach the apex and `www` domains.
 
 ## WorkOS and frontend deployment
 
@@ -105,7 +133,7 @@ pnpm --filter @exitslide/frontend exec vite build --mode release
 pnpm --filter @exitslide/frontend exec cf workers triggers deploy --prebuilt
 ```
 
-Workers Builds reads the pinned pnpm version from the root `package.json`. The explicit preview commands select the frontend workspace and fixture mode. The production deploy command is a no-op, and GitHub Actions continues to deploy both production Workers. [Workers Builds settings](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) · [Build watch paths](https://developers.cloudflare.com/workers/ci-cd/builds/build-watch-paths/) · [Build image variables](https://developers.cloudflare.com/workers/ci-cd/builds/build-image/)
+Workers Builds reads the pinned pnpm version from the root `package.json`. The explicit preview commands select the frontend workspace and fixture mode. The production deploy command is a no-op, and GitHub Actions deploys the production Workers. [Workers Builds settings](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) · [Build watch paths](https://developers.cloudflare.com/workers/ci-cd/builds/build-watch-paths/) · [Build image variables](https://developers.cloudflare.com/workers/ci-cd/builds/build-image/)
 
 To exercise the preview locally, run the fixture build and browser test.
 

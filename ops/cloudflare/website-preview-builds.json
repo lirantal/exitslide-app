@@ -1,0 +1,33 @@
+{
+  "previews_enabled": true,
+  "production_settings": {
+    "root_directory": "/",
+    "build_caching_enabled": true,
+    "build_command": "true",
+    "deploy_command": "echo 'Production deploys through GitHub Actions'",
+    "path_includes": ["*"],
+    "path_excludes": ["*"],
+    "environment_variables": {
+      "SKIP_DEPENDENCY_INSTALL": { "value": "true", "is_secret": false }
+    }
+  },
+  "previews_base_config": {
+    "root_directory": "/",
+    "build_caching_enabled": true,
+    "build_command": "pnpm install --frozen-lockfile && pnpm --filter @exitslide/website build:pr-preview",
+    "deploy_command": "pnpm --filter @exitslide/website deploy:pr-preview",
+    "path_includes": [
+      "website/*",
+      "ops/cloudflare/website-preview-builds.json",
+      "package.json",
+      "pnpm-lock.yaml",
+      "pnpm-workspace.yaml",
+      ".node-version"
+    ],
+    "path_excludes": [],
+    "environment_variables": {
+      "NODE_VERSION": { "value": "24.22.1", "is_secret": false },
+      "SKIP_DEPENDENCY_INSTALL": { "value": "true", "is_secret": false }
+    }
+  }
+}

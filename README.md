@@ -21,6 +21,8 @@ pnpm dev
 
 Vite starts the public frontend at `http://localhost:3000` and loads the backend as an auxiliary Worker. Run `curl -fsS http://localhost:3000/healthz` to check the service binding. A successful response identifies the Hono backend.
 
+The product website lives in `website/`. Run `pnpm --filter @exitslide/website dev` to preview it locally. Its account links go to the production app.
+
 For speaker sign-in, copy `frontend/.dev.vars.example` to `frontend/.dev.vars` and set the WorkOS client ID, callback URL, and a random cookie password of at least 32 characters. In the WorkOS development project, register `http://localhost:3000/auth/callback` as the callback, `http://localhost:3000/sign-in` as the initiate-login URI, and `http://localhost:3000/` as the sign-out destination. Restart the dev server after setting the variables. The health check works before WorkOS configuration is added.
 
 ```sh
@@ -36,4 +38,4 @@ Run `pnpm exec playwright install chromium` once, then `pnpm test:e2e` for the l
 
 **[Deploy production](https://github.com/lirantal/exitslide-app/actions/workflows/ci.yml)** · Click **Run workflow**, select `main`, and confirm **Run workflow**.
 
-The [admin runbook](docs/admin.md) covers production deployment, credentials, and [fixture-backed frontend PR previews](docs/admin.md#frontend-pr-previews). The [pilot checklist](docs/pilot.md) covers release verification and rollback.
+The [admin runbook](docs/admin.md) covers production deployment, credentials, [landing-page DNS](docs/admin.md#landing-page-domains), and [fixture-backed frontend PR previews](docs/admin.md#frontend-pr-previews). The [pilot checklist](docs/pilot.md) covers release verification and rollback.

@@ -1,0 +1,16 @@
+{
+  "name": "@exitslide/website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "build:pr-preview": "CLOUDFLARE_PREVIEW_BUILD=true vite build --mode pr-preview",
+    "deploy:pr-preview": "cf previews deploy --prebuilt --mode pr-preview",
+    "deploy": "vite build --mode release && cf deploy --prebuilt"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "2.0.0-rc.2",
+    "vite": "8.3.8"
+  }
+}
